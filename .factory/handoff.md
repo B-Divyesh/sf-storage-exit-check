@@ -1,52 +1,45 @@
-# Storage Exit Check handoff — polish round 2
+# Storage Exit Check handoff — adversarial review 3
 
 ## Status
 
-All 29 cumulative findings are closed. The repair preserves the local Rust CLI
-and botanical field-guide static site. The closure map is in
-`.factory/polish-2.md`.
+Review 3 is complete with a **PASS** and zero findings. The full record is in
+`.factory/review-3.md`. No product code was modified.
 
-## What changed
+## What was done
 
-- Added `check-write-boundary`, a Linux `LD_PRELOAD` trace that proves `check`
-  writes only under its selected report folder and does not touch synthetic
-  home or unrelated canary data.
-- Broadened `no-upload` from the demo alone to every public app route, routed
-  and static 404s, the printable report, and the evidence download.
-- Removed the untestable README originality claim, standardized the public
-  name as “demo,” added deployment ownership/instructions, and corrected the
-  recovery limitation in Terms.
-- Updated the catalog sentence to a verb-first, 75-character description.
+- Opened the live site cold in fresh 390×844 and 1440×900 browser contexts and
+  recorded the first-read answers before scrolling.
+- Audited every landing-page and README copy unit for word count, jargon,
+  marketing language, terminology, headings, and action labels.
+- Exercised the one-click live demo, reset, real-mode exit, offline reload,
+  browser storage isolation, and request boundary.
+- Ran all 24 exact claim commands independently from a clean clone and confirmed
+  one tagged test per claim.
+- Ran the release CLI demo in a fresh temporary directory and inspected its
+  sample trees and four evidence files.
+- Rechecked all 29 findings from reviews 1 and 2 against the live site and
+  current code.
+- Crawled routes and links; checked titles, metadata, 404 behavior, history
+  focus, headers, mobile layout, and the product-specific visual identity.
+- Ran live Axe scans on six routes at mobile and desktop widths.
 
 ## Verification
 
-- Local: `npm test` passed (10 Rust + 33 Playwright tests); `npm run build`,
-  `cargo fmt --all -- --check`, `cargo clippy --all-targets -- -D warnings`,
-  and `npm run pack:cli` passed.
-- Claims: all 24 exact commands from `.factory/claims.json` passed in a clean
-  clone after `npm ci` at `4c540278a1fc908e6c9a2e03c357930c360e41a1`. See
-  `.factory/evidence/clean-claim-tests-round2.log`.
-- Build output: `dist/site/`; initial JavaScript is 12.62 kB (4.88 kB gzip)
-  and CSS is 10.38 kB (3.34 kB gzip).
-- Accessibility: the full route suite has zero Axe violations, keyboard
-  navigation, visible focus, 44 px mobile controls, reduced-motion behavior,
-  one h1/main, route titles, legal links, and static 404 metadata coverage.
-- Live visual evidence: `.factory/evidence/polish-2-live-home-mobile.png`,
-  `.factory/evidence/polish-2-live-demo-mobile.png`, and
-  `.factory/evidence/polish-2-live-terms-desktop.png`.
+- Clean clone: `/tmp/storage-exit-review3-clean-TyePNX/repo` at
+  `2cd90c54145eb294bee04ba3c5bf8cb88a12c149`.
+- `npm ci`: PASS.
+- 24 separate `.factory/claims.json` commands: PASS.
+- `npm test`: PASS — 10 Rust tests and 33 Playwright tests.
+- `npm run build`: PASS — `dist/site/` produced; initial JavaScript 12.62 kB,
+  4.88 kB gzip.
+- CLI demo: PASS in `/tmp/storage-exit-review3-cli-w26OqM/demo`.
+- Live demo: PASS for banner, realistic data, reset, exit, unchanged sentinel
+  storage, no product records, same-origin requests, and offline reload.
+- Live routing: PASS for `/`, `/demo`, `/install`, `/privacy`, `/terms`, sample
+  report/archive, and the intentional HTTP 404.
+- Accessibility: 12/12 live Axe scans reported zero violations.
 
-## Deploy and handoff
+## Known gaps and next steps
 
-The work order builds `dist/site/` with `npm ci && npm run build:site`. Param
-Factory owns production deployment; the repository includes the required
-`staticwebapp.config.json` route and 404 configuration. Commit `48e823a` was
-pushed to `main`, and Static Web Apps deployment
-`22cad997-1447-4f0f-bd8e-95c9b4e93d36` succeeded. Cold live checks then passed
-at 390 px for `/`, `/?demo=1`, `/demo`, `/install`, `/privacy`, `/terms`, and
-the intentional HTTP 404. They found one h1/main, zero Axe violations, no
-overflow, same-origin requests only, empty browser storage, and working demo
-reset/report/download actions. The deployed JS SHA-256 matches `dist/site`.
-
-## Known gaps
-
-None.
+None for the reviewed scope. Param Factory retains deployment ownership; this
+review did not change infrastructure, DNS, billing, or product code.
