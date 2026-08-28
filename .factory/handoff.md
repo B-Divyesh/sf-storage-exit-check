@@ -63,7 +63,9 @@ credentials were not used.
   report INP without field interactions.
 - Initial compressed assets: JS 4.08 KB, CSS 3.07 KB, hero WebP 83.7 KB.
 - `npm audit --omit=dev`: 0 vulnerabilities.
-- `cargo package --allow-dirty`: verified a 53.8 KiB package.
+- `cargo package`: verified a 55.4 KiB package.
+- A fresh `git archive` checkout passed `npm ci`, `npm test`, and
+  `npm run build`; `dist/site/index.html` was present.
 - Desktop and 390×844 screenshots were reviewed manually.
 
 ## Privacy and safety
