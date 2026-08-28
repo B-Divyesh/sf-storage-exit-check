@@ -11,6 +11,32 @@ use walkdir::WalkDir;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+// These bytes are deliberately embedded from the inspectable `examples/` tree.
+// `demo` must remain runnable after `cargo install`, while the exact sample
+// input stays available to review in the repository and published crate.
+const DEMO_FIXTURES: [(&str, &[u8]); 5] = [
+    (
+        "Documents/passport-scan.txt",
+        include_bytes!("../examples/source/Documents/passport-scan.txt"),
+    ),
+    (
+        "Documents/tax-2024.txt",
+        include_bytes!("../examples/source/Documents/tax-2024.txt"),
+    ),
+    (
+        "Photos/2024/coast.txt",
+        include_bytes!("../examples/source/Photos/2024/coast.txt"),
+    ),
+    (
+        "Photos/2024/garden.txt",
+        include_bytes!("../examples/source/Photos/2024/garden.txt"),
+    ),
+    (
+        "Notes/recipes.txt",
+        include_bytes!("../examples/source/Notes/recipes.txt"),
+    ),
+];
+
 #[derive(Parser, Debug)]
 #[command(name = "storage-exit-check", version, about = "Check a storage migration before you cancel the old service.", long_about = None)]
 struct Cli {
@@ -806,26 +832,12 @@ fn run_demo(root: &Path, json: bool) -> Result<(), Box<dyn std::error::Error>> {
     let source = root.join("sample-source");
     let replacement = root.join("sample-replacement");
     let restored = root.join("sample-restored");
-    for dir in [&source, &replacement, &restored] {
-        fs::create_dir_all(dir.join("Photos/2024"))?;
-    }
-    let files = [
-        (
-            "Documents/passport-scan.txt",
-            "Sample passport scan placeholder\n",
-        ),
-        ("Documents/tax-2024.txt", "Sample tax record placeholder\n"),
-        ("Photos/2024/coast.txt", "Sample coast photo bytes\n"),
-        ("Photos/2024/garden.txt", "Sample garden photo bytes\n"),
-        ("Notes/recipes.txt", "Tomato soup\nLentil stew\n"),
-    ];
-    for (path, content) in files {
-        let target = source.join(path);
-        fs::create_dir_all(target.parent().unwrap())?;
-        fs::write(&target, content)?;
-        let copy = replacement.join(path);
-        fs::create_dir_all(copy.parent().unwrap())?;
-        fs::write(&copy, content)?;
+    for (path, contents) in DEMO_FIXTURES {
+        for tree in [&source, &replacement] {
+            let target = tree.join(path);
+            fs::create_dir_all(target.parent().unwrap())?;
+            fs::write(target, contents)?;
+        }
     }
     let evidence_dir = root.join("evidence");
     let audit = create_audit(&source, &replacement, 3, false)?;
@@ -973,5 +985,16 @@ mod tests {
             .differences
             .iter()
             .any(|item| item.kind == "empty_source"));
+    }
+
+    #[test]
+    fn bundled_demo_fixtures_match_the_inspectable_example_tree() {
+        assert_eq!(DEMO_FIXTURES.len(), 5);
+        for (path, contents) in DEMO_FIXTURES {
+            assert_eq!(
+                contents,
+                fs::read(Path::new("examples/source").join(path)).unwrap()
+            );
+        }
     }
 }

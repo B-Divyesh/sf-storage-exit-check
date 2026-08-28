@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -49,6 +49,18 @@ test('all routes are keyboard reachable and have no serious axe findings', async
   await expect(page.getByText('Skip to content')).toBeFocused();
 });
 
+test('demo remains accessible and keyboard-operable at 390px', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/demo');
+  await page.keyboard.press('Tab');
+  await expect(page.getByText('Skip to content')).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#main')).toBeFocused();
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
+
 test('@claim:demo-complete demo verifies a three-file restore sample', () => {
   const root = join(temp(), 'demo');
   const output = execFileSync(binary, ['demo', '--output', root], { encoding: 'utf8' });
@@ -56,6 +68,42 @@ test('@claim:demo-complete demo verifies a three-file restore sample', () => {
   expect(output).toContain('Restore sample: 3 of 3 passed');
   expect(readFileSync(join(root, 'evidence', 'audit.json'), 'utf8')).toContain('"complete": true');
   expect(readFileSync(join(root, 'evidence', 'restore-report.html'), 'utf8')).toContain('Restore sample passed');
+});
+
+test('@regression:inspectable-demo-fixtures demo copies the shipped examples', () => {
+  const root = join(temp(), 'demo');
+  execFileSync(binary, ['demo', '--output', root]);
+  const fixtures = [
+    'Documents/passport-scan.txt',
+    'Documents/tax-2024.txt',
+    'Photos/2024/coast.txt',
+    'Photos/2024/garden.txt',
+    'Notes/recipes.txt',
+  ];
+  for (const fixture of fixtures) {
+    const shipped = join('examples', 'source', fixture);
+    expect(existsSync(shipped)).toBe(true);
+    expect(readFileSync(join(root, 'sample-source', fixture))).toEqual(readFileSync(shipped));
+    expect(readFileSync(join(root, 'sample-replacement', fixture))).toEqual(readFileSync(shipped));
+  }
+});
+
+test('@regression:static-hosting preserves app deep links, asset caching, and HTTP 404', () => {
+  const config = JSON.parse(readFileSync('site/public/staticwebapp.config.json', 'utf8'));
+  expect(config.navigationFallback).toBeUndefined();
+  for (const route of ['/demo', '/install', '/privacy', '/terms']) {
+    expect(config.routes).toContainEqual({ route, rewrite: '/index.html' });
+  }
+  expect(config.responseOverrides['404']).toEqual({ rewrite: '/404.html', statusCode: 404 });
+  expect(readFileSync('site/public/404.html', 'utf8')).toContain('<h1>This trail ends here</h1>');
+
+  const immutable = 'public, max-age=31536000, immutable';
+  for (const route of ['/assets/*', '/field-guide-roots-fb69c545.webp', '/og-image-b1a471d6.webp']) {
+    expect(config.routes).toContainEqual({ route, headers: { 'Cache-Control': immutable } });
+  }
+  for (const route of ['/sw.js', '/index.html', '/404.html']) {
+    expect(config.routes).toContainEqual({ route, headers: { 'Cache-Control': 'public, max-age=0, must-revalidate' } });
+  }
 });
 
 test('@claim:no-upload demo makes no third-party requests', async ({ page }) => {

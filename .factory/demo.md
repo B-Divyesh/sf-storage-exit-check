@@ -11,8 +11,9 @@
 
 The CLI creates a new folder under the operating system temp directory. It
 contains `sample-source`, `sample-replacement`, `sample-restored`, and
-`evidence`. Five text fixtures represent documents, photos, and notes. The same
-fixture content is visible under `examples/` for inspection.
+`evidence`. It copies the five inspectable document, photo, and note fixtures
+from `examples/source/` into both sample trees. Those fixture bytes are embedded
+at compile time, so the installed binary uses the exact shipped sample.
 
 The demo runs the production audit engine. It compares five files, selects three
 with the manifest-derived seed, copies only those fixtures into the restore

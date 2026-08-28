@@ -1,5 +1,5 @@
-const CACHE = 'storage-exit-check-v1';
-const SHELL = ['/', '/demo', '/install', '/privacy', '/terms', '/field-guide-roots.webp', '/favicon.svg'];
+const CACHE = 'storage-exit-check-v2';
+const SHELL = ['/', '/demo', '/install', '/privacy', '/terms', '/field-guide-roots-fb69c545.webp', '/favicon.svg'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL))));
 self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key))))));
 self.addEventListener('fetch', event => {

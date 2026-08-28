@@ -9,12 +9,16 @@
     "build:site": "vite build site --outDir ../dist/site --emptyOutDir",
     "build": "npm run build:cli && npm run build:site",
     "preview": "vite preview --outDir dist/site",
-    "test": "cargo test && cargo build && npm run build:site && playwright test",
+    "typecheck": "tsc --noEmit",
+    "test": "cargo test && cargo build && npm run typecheck && npm run build:site && playwright test",
     "pack:cli": "cargo package --allow-dirty"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.10.2",
     "@playwright/test": "1.58.2",
+    "@types/node": "22.15.3",
+    "playwright-core": "1.58.2",
+    "typescript": "5.8.3",
     "vite": "^6.4.3"
   }
 }

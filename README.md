@@ -17,9 +17,10 @@ restore does not prove full disaster recovery.
 cargo run -- demo
 ```
 
-The demo creates five source files and five replacement files in a new system
-temp directory. It checks their content, restores three selected files, and
-prints the evidence path. It does not read or write your real data.
+The demo copies the five inspectable fixtures in [`examples/source`](examples/source)
+into a new system temp directory for both trees. It checks their content,
+restores three selected files, and prints the evidence path. It does not read
+or write your real data.
 
 The recorded browser demo is at
 [storage-exit-check.sociobot.in/demo](https://storage-exit-check.sociobot.in/demo).

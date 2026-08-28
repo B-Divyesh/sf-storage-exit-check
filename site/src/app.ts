@@ -11,7 +11,7 @@ const shell = (content: string, demo = false) => `
     <a class="wordmark" href="/" data-link aria-label="Storage Exit Check home"><svg aria-hidden="true" viewBox="0 0 32 32"><path d="M16 27V8m0 8c-5-1-8-4-9-8 5 0 8 3 9 8Zm0 5c5-1 8-4 9-8-5 0-8 3-9 8Z"/></svg><span>Storage Exit Check</span></a>
     <nav aria-label="Main navigation"><a href="/demo" data-link>Demo</a><a href="/install" data-link>Install</a><a href="/privacy" data-link>Privacy</a></nav>
   </header>
-  <main id="main">${content}</main>
+  <main id="main" tabindex="-1">${content}</main>
   <footer class="site-footer"><p><strong>Storage Exit Check</strong><br><span>Evidence before you leave cloud storage.</span></p><nav aria-label="Footer navigation"><a href="/privacy" data-link>Privacy</a><a href="/terms" data-link>Terms</a><a href="https://hello-factory.sociobot.in/">Built by Param Factory <span class="sr-only">(external site)</span></a></nav><p class="build">v0.1.0 · build 2026-08-28</p></footer>`;
 
 const terminal = (id = 'terminal-output') => `
@@ -41,7 +41,7 @@ const pages: Record<string, Page> = {
           <div class="hero-action"><a class="button" href="/demo" data-link>Try it with sample data</a><p>See a complete check and restore test in one click.</p></div>
           <ul class="plain-facts" aria-label="Product facts"><li>No files uploaded</li><li>Works without internet</li><li>Free under the MIT License</li></ul>
         </div>
-        <figure class="hero-plate"><img src="/field-guide-roots.webp" width="960" height="640" fetchpriority="high" alt="Two botanical file trees share roots around a small archive box." /><figcaption>Plate A. Two file trees, checked at the root.</figcaption></figure>
+        <figure class="hero-plate"><img src="/field-guide-roots-fb69c545.webp" width="960" height="640" fetchpriority="high" alt="Two botanical file trees share roots around a small archive box." /><figcaption>Plate A. Two file trees, checked at the root.</figcaption></figure>
       </section>
       <section class="preview section-wrap" aria-labelledby="preview-title">
         <div class="section-intro"><p class="specimen-label">Observed result</p><h2 id="preview-title">See the evidence before you trust it</h2><p>The command checks content, selects a repeatable sample, and writes a printable report.</p></div>
