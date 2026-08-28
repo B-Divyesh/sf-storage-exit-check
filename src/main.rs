@@ -2,11 +2,11 @@ use clap::{error::ErrorKind, Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, HashMap};
-use std::fs::{self, File};
+use std::fs::{self, File, FileTimes};
 use std::io::{self, Read};
 use std::path::{Component, Path, PathBuf};
 use std::process::ExitCode;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use walkdir::WalkDir;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -17,26 +17,31 @@ const RESTORE_BOUNDARY_DOMAIN: &[u8] = b"storage-exit-check:restore-boundary:v1\
 // input stays available to review in the repository and published crate.
 const DEMO_FIXTURES: [(&str, &[u8]); 5] = [
     (
-        "Documents/passport-scan.txt",
-        include_bytes!("../examples/source/Documents/passport-scan.txt"),
+        "Documents/cloud-exit-checklist.md",
+        include_bytes!("../examples/source/Documents/cloud-exit-checklist.md"),
     ),
     (
-        "Documents/tax-2024.txt",
-        include_bytes!("../examples/source/Documents/tax-2024.txt"),
+        "Documents/household-inventory.csv",
+        include_bytes!("../examples/source/Documents/household-inventory.csv"),
     ),
     (
-        "Photos/2024/coast.txt",
-        include_bytes!("../examples/source/Photos/2024/coast.txt"),
+        "Photos/2024/coast-walk.jpg",
+        include_bytes!("../examples/source/Photos/2024/coast-walk.jpg"),
     ),
     (
-        "Photos/2024/garden.txt",
-        include_bytes!("../examples/source/Photos/2024/garden.txt"),
+        "Photos/2024/garden-harvest.jpg",
+        include_bytes!("../examples/source/Photos/2024/garden-harvest.jpg"),
     ),
     (
-        "Notes/recipes.txt",
-        include_bytes!("../examples/source/Notes/recipes.txt"),
+        "Notes/family-recipes.md",
+        include_bytes!("../examples/source/Notes/family-recipes.md"),
     ),
 ];
+
+const DEMO_REPLACEMENT_EXTRA: (&str, &[u8]) = (
+    "NAS-README.txt",
+    include_bytes!("../examples/replacement/NAS-README.txt"),
+);
 
 #[derive(Parser, Debug)]
 #[command(name = "storage-exit-check", version, about = "Check a storage migration before you cancel the old service.", long_about = None)]
@@ -51,27 +56,27 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Command {
-    /// Compare a source tree with its replacement and write an evidence packet.
+    /// Compare a source folder with its replacement and write a report folder.
     Check {
         /// Directory that still holds the source copy.
         source: PathBuf,
         /// Directory on the NAS or local disk.
         replacement: PathBuf,
-        /// New directory for report.html and audit.json.
+        /// New report folder for report.html and audit.json.
         #[arg(short, long, default_value = "exit-check-report")]
         output: PathBuf,
         /// Number of matching files in the restore sample.
         #[arg(long, default_value_t = 10, value_parser = clap::value_parser!(u32).range(1..=1000))]
         sample_size: u32,
-        /// Hide filenames and directory names in the evidence packet.
+        /// Hide filenames and folder names in the reports.
         #[arg(long)]
         redact: bool,
     },
-    /// Verify that the sampled files were restored into a separate directory.
+    /// Verify that the sampled files were restored into a separate folder.
     VerifyRestore {
         /// audit.json produced by the check command.
         audit: PathBuf,
-        /// Directory containing files restored from the replacement backup.
+        /// Folder containing files restored from the replacement folder.
         restored: PathBuf,
         /// HTML file to write. Defaults beside audit.json.
         #[arg(short, long)]
@@ -79,7 +84,7 @@ enum Command {
     },
     /// Run a complete check and restore verification on bundled sample data.
     Demo {
-        /// Directory for the sample trees and reports. Defaults to a new temp directory.
+        /// Folder for the samples and reports. Defaults beneath the system temp folder.
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
@@ -278,6 +283,11 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
 }
 
 fn now_seconds() -> u64 {
+    if let Ok(value) = std::env::var("SOURCE_DATE_EPOCH") {
+        if let Ok(seconds) = value.parse() {
+            return seconds;
+        }
+    }
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
@@ -294,7 +304,7 @@ fn validate_root(path: &Path, label: &str) -> io::Result<PathBuf> {
     if !metadata.is_dir() {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            format!("{label} '{}' is not a directory", path.display()),
+            format!("{label} '{}' is not a folder", path.display()),
         ));
     }
     let canonical = fs::canonicalize(path)?;
@@ -355,7 +365,7 @@ fn validate_output_location(
     if output.starts_with(&source_root) || output.starts_with(&replacement_root) {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            "output must be outside the source and replacement directories",
+            "report folder must be outside the source and replacement folders",
         ));
     }
     Ok(output)
@@ -381,7 +391,7 @@ fn validate_restore_location(audit: &Audit, restored_root: &Path) -> io::Result<
     if audit.schema_version < 2 || audit.restore_boundary_fingerprints.len() != 2 {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            "audit cannot verify a separate restore directory; run check again with this version",
+            "audit cannot verify a separate restore folder; run check again with this version",
         ));
     }
 
@@ -397,7 +407,7 @@ fn validate_restore_location(audit: &Audit, restored_root: &Path) -> io::Result<
         {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
-                "restored sample must be a separate directory outside the audited source and replacement trees",
+                "restore folder must be separate from the audited source and replacement folders",
             ));
         }
     }
@@ -527,7 +537,7 @@ fn create_audit(
     let source_root = validate_root(source, "source")?;
     let replacement_root = validate_root(replacement, "replacement")?;
     if source_root == replacement_root {
-        return Err("source and replacement resolve to the same directory".into());
+        return Err("source and replacement resolve to the same folder".into());
     }
     let source_entries = snapshot(&source_root)?;
     let replacement_entries = snapshot(&replacement_root)?;
@@ -563,7 +573,7 @@ fn create_audit(
                 differences.push(Difference {
                     path: shown,
                     kind: "type_changed".into(),
-                    detail: "The item type differs between trees.".into(),
+                    detail: "The item type differs between folders.".into(),
                 });
             }
             Some(replacement_entry)
@@ -638,7 +648,7 @@ fn create_audit(
         .collect();
     if source_entries.is_empty() {
         differences.push(Difference {
-            path: "[source tree]".into(),
+            path: "[source folder]".into(),
             kind: "empty_source".into(),
             detail: "The source contains no regular files or symbolic links.".into(),
         });
@@ -672,7 +682,7 @@ fn create_audit(
             "Symbolic links are compared as links and are never followed.".into(),
             "Timestamp-only differences do not fail the content check because filesystems round and preserve times differently.".into(),
             "A sampled restore reduces uncertainty. It does not prove full disaster recovery.".into(),
-            "Storage Exit Check never deletes source files or cancels a service.".into(),
+            "The check does not modify either input folder.".into(),
         ],
     })
 }
@@ -713,7 +723,7 @@ fn write_evidence(audit: &Audit, output: &Path) -> io::Result<()> {
         return Err(io::Error::new(
             io::ErrorKind::AlreadyExists,
             format!(
-                "output directory '{}' is not empty; choose a new directory",
+                "report folder '{}' is not empty; choose a new folder",
                 output.display()
             ),
         ));
@@ -739,7 +749,7 @@ fn write_evidence(audit: &Audit, output: &Path) -> io::Result<()> {
             ));
         }
     }
-    sample.push_str("\nRestore these files from the replacement backup into a separate empty directory.\nThen run: storage-exit-check verify-restore audit.json PATH_TO_RESTORED_DIRECTORY\n");
+    sample.push_str("\nRestore these files from the replacement folder into a separate empty restore folder.\nThen run: storage-exit-check verify-restore audit.json PATH_TO_RESTORE_FOLDER\n");
     fs::write(output.join("restore-sample.txt"), sample)?;
     Ok(())
 }
@@ -821,7 +831,7 @@ fn verify_restore(
                 }
                 _ => (
                     false,
-                    "The sampled path is missing from the restore directory.".into(),
+                    "The sampled path is missing from the restore folder.".into(),
                 ),
             }
         } else {
@@ -926,7 +936,7 @@ fn render_audit_report(audit: &Audit) -> String {
         format!("<table><thead><tr><th>Sample</th><th>Path</th><th>Size</th><th>SHA-256</th></tr></thead><tbody>{rows}</tbody></table>")
     };
     let body = format!(
-        r#"<p class="kicker">Storage Exit Check · evidence packet</p><h1>Migration content check</h1><p>Created at Unix time {} with version {}.</p><section class="verdict"><strong class="{}">{}</strong><br>{} missing · {} changed · {} extra</section><h2>Tree summary</h2><table><tbody><tr><th>Source</th><td>{} entries · {} bytes<br><code>manifest {}</code></td></tr><tr><th>Replacement</th><td>{} entries · {} bytes<br><code>manifest {}</code></td></tr><tr><th>Matching files</th><td>{}</td></tr><tr><th>Timestamp-only differences</th><td>{}</td></tr></tbody></table><h2>Differences</h2>{}<h2>Reproducible restore sample</h2><p>Seed: <code>{}</code></p>{}<h2>Read before cancelling</h2><p class="note">A sampled restore reduces uncertainty. It does not prove full disaster recovery.</p><ul><li>Restore the listed samples from the replacement backup into a separate empty directory.</li><li>Run <code>storage-exit-check verify-restore audit.json PATH</code>.</li><li>Review retention, off-site copies, and recovery access before cancelling.</li><li>This tool never deletes source files or cancels a service.</li></ul>"#,
+        r#"<p class="kicker">Storage Exit Check · evidence report</p><h1>Migration content check</h1><p>Created at Unix time {} with version {}.</p><section class="verdict"><strong class="{}">{}</strong><br>{} missing · {} changed · {} extra</section><h2>Folder summary</h2><table><tbody><tr><th>Source</th><td>{} entries · {} bytes<br><code>manifest {}</code></td></tr><tr><th>Replacement</th><td>{} entries · {} bytes<br><code>manifest {}</code></td></tr><tr><th>Matching files</th><td>{}</td></tr><tr><th>Timestamp-only differences</th><td>{}</td></tr></tbody></table><h2>Differences</h2>{}<h2>Repeatable restore sample</h2><p>Seed: <code>{}</code></p>{}<h2>Read before cancelling</h2><p class="note">A sampled restore reduces uncertainty. It does not prove full disaster recovery.</p><ul><li>Restore the listed samples from the replacement folder into a separate empty folder.</li><li>Run <code>storage-exit-check verify-restore audit.json PATH</code>.</li><li>Review retention, off-site copies, and recovery access before cancelling.</li><li>The check does not modify either input folder.</li></ul>"#,
         audit.created_unix_seconds,
         escape_html(&audit.tool_version),
         verdict_class,
@@ -990,7 +1000,7 @@ fn render_restore_report(audit: &Audit, result: &RestoreResult) -> String {
 fn run_demo(root: &Path, json: bool) -> Result<(), Box<dyn std::error::Error>> {
     if root.exists() && root.read_dir()?.next().is_some() {
         return Err(format!(
-            "demo output '{}' is not empty; choose a new directory",
+            "demo folder '{}' is not empty; choose a new folder",
             root.display()
         )
         .into());
@@ -1005,6 +1015,19 @@ fn run_demo(root: &Path, json: bool) -> Result<(), Box<dyn std::error::Error>> {
             fs::write(target, contents)?;
         }
     }
+    let extra = replacement.join(DEMO_REPLACEMENT_EXTRA.0);
+    fs::write(&extra, DEMO_REPLACEMENT_EXTRA.1)?;
+
+    // Use fixed timestamps so the shipped demo always contains exactly one
+    // harmless timestamp-only difference on otherwise identical content.
+    let baseline = UNIX_EPOCH + Duration::from_secs(1_700_000_000);
+    for (path, _) in DEMO_FIXTURES {
+        for tree in [&source, &replacement] {
+            File::open(tree.join(path))?.set_times(FileTimes::new().set_modified(baseline))?;
+        }
+    }
+    File::open(replacement.join("Documents/cloud-exit-checklist.md"))?
+        .set_times(FileTimes::new().set_modified(baseline + Duration::from_secs(86_400)))?;
     let evidence_dir = root.join("evidence");
     let audit = create_audit(&source, &replacement, 3, false)?;
     write_evidence(&audit, &evidence_dir)?;
@@ -1026,8 +1049,15 @@ fn run_demo(root: &Path, json: bool) -> Result<(), Box<dyn std::error::Error>> {
         );
     } else {
         println!("Demo — sample data, nothing is saved outside this folder");
-        println!("Scanned 5 source files and 5 replacement files");
+        println!(
+            "Scanned {} source files and {} replacement files",
+            audit.summary.source_entries, audit.summary.replacement_entries
+        );
         println!("Content check: passed");
+        println!(
+            "Findings: {} harmless extra · {} timestamp-only difference",
+            audit.summary.extra, audit.summary.timestamp_only
+        );
         println!(
             "Restore sample: {} of {} passed",
             restore_result.passed,
@@ -1174,7 +1204,7 @@ mod tests {
             let error = verify_restore(&audit, candidate).unwrap_err();
             assert!(error
                 .to_string()
-                .contains("restored sample must be a separate directory"));
+                .contains("restore folder must be separate"));
         }
         assert_eq!(verify_restore(&audit, &restored).unwrap().passed, 1);
     }
@@ -1190,7 +1220,7 @@ mod tests {
             validate_output_location(&source, &replacement, &source.join("evidence"))
                 .unwrap_err()
                 .to_string()
-                .contains("output must be outside")
+                .contains("report folder must be outside")
         );
 
         #[cfg(unix)]
@@ -1201,7 +1231,7 @@ mod tests {
                 validate_output_location(&source, &replacement, &alias.join("evidence"))
                     .unwrap_err()
                     .to_string()
-                    .contains("output must be outside")
+                    .contains("report folder must be outside")
             );
         }
     }

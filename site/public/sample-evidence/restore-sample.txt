@@ -1,0 +1,8 @@
+Storage Exit Check — restore sample
+
+SAMPLE-001  Photos/2024/garden-harvest.jpg  105877 bytes  sha256:7261fc9d8261b5b3014d849476c92d53b209daa2a987b7eec14c0fc43b02b860
+SAMPLE-002  Documents/household-inventory.csv  202 bytes  sha256:e224bd3aa50d3138d417de40eab0371cf92cdcc800c5d0a8df2205ef6c224346
+SAMPLE-003  Documents/cloud-exit-checklist.md  344 bytes  sha256:0d34d93f5f6835a733020d45593eb2b86653f0c930f838f66e258714599fdf50
+
+Restore these files from the replacement folder into a separate empty restore folder.
+Then run: storage-exit-check verify-restore audit.json PATH_TO_RESTORE_FOLDER

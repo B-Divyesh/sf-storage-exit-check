@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, statSync, symlinkSync, utimesSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, symlinkSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const binary = join(process.cwd(), 'target', 'debug', 'storage-exit-check');
+const releaseBinary = join(process.cwd(), 'target', 'release', 'storage-exit-check');
 const temp = () => mkdtempSync(join(tmpdir(), 'storage-exit-check-test-'));
 const write = (path: string, value: string) => {
   mkdirSync(join(path, '..'), { recursive: true });
@@ -43,6 +44,24 @@ function guardedDemo(root: string) {
   return { result, attempts: existsSync(log) ? readFileSync(log, 'utf8') : '' };
 }
 
+function tracedDemo(root: string, userData: string) {
+  const guard = join(temp(), 'filesystem-guard.so');
+  const compile = spawnSync('cc', ['-shared', '-fPIC', '-ldl', 'tests/filesystem_guard.c', '-o', guard], { encoding: 'utf8' });
+  expect(compile.status, compile.stderr).toBe(0);
+  const log = join(temp(), 'filesystem-access.log');
+  const result = spawnSync(binary, ['demo', '--output', root], {
+    cwd: temp(),
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      HOME: userData,
+      LD_PRELOAD: guard,
+      STORAGE_EXIT_CHECK_FS_LOG: log,
+    },
+  });
+  return { result, accesses: existsSync(log) ? readFileSync(log, 'utf8').trim().split('\n').filter(Boolean) : [] };
+}
+
 test('landing page has the required structure at 390px', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
@@ -51,14 +70,43 @@ test('landing page has the required structure at 390px', async ({ page }) => {
   await expect(page.locator('main')).toHaveCount(1);
   await expect(page.getByRole('link', { name: 'Try it with sample data' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  await page.getByRole('link', { name: 'Try it with sample data' }).click();
+  await expect(page).toHaveURL(/\?demo=1$/);
+  await expect(page.getByLabel('Demo mode')).toBeVisible();
 });
 
-test('all routes are keyboard reachable and have no serious axe findings', async ({ page }) => {
+test('@regression:routing-metadata every route has its own title, metadata, legal links, and focused navigation', async ({ page }) => {
+  const routes = new Map([
+    ['/', 'Storage Exit Check — check a storage move'],
+    ['/?demo=1', 'Demo — Storage Exit Check'],
+    ['/demo', 'Demo — Storage Exit Check'],
+    ['/install', 'Install — Storage Exit Check'],
+    ['/privacy', 'Privacy — Storage Exit Check'],
+    ['/terms', 'Terms — Storage Exit Check'],
+    ['/missing-page', 'Page not found — Storage Exit Check'],
+  ]);
+  for (const [route, title] of routes) {
+    const response = await page.goto(route);
+    expect(response?.status()).toBe(200);
+    await expect(page).toHaveTitle(title);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /\S+/);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /^https:\/\/storage-exit-check\.sociobot\.in\//);
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', title);
+    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute('content', title);
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /og-image-b1a471d6\.webp$/);
+    await expect(page.locator('h1')).toHaveCount(1);
+    await expect(page.locator('main')).toHaveCount(1);
+    await expect(page.getByRole('link', { name: 'Privacy', exact: true }).last()).toHaveAttribute('href', '/privacy');
+    await expect(page.getByRole('link', { name: 'Terms', exact: true })).toHaveAttribute('href', '/terms');
+  }
+});
+
+test('all routes are keyboard reachable and have no Axe findings', async ({ page }) => {
   for (const route of ['/', '/demo', '/install', '/privacy', '/terms', '/missing-page']) {
     await page.goto(route);
     await expect(page.locator('h1')).toHaveCount(1);
     const results = await new AxeBuilder({ page }).analyze();
-    expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
+    expect(results.violations).toEqual([]);
   }
   await page.goto('/');
   await page.keyboard.press('Tab');
@@ -73,7 +121,7 @@ test('demo remains accessible and keyboard-operable at 390px', async ({ page }) 
   await page.keyboard.press('Enter');
   await expect(page.locator('#main')).toBeFocused();
   const results = await new AxeBuilder({ page }).analyze();
-  expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
+  expect(results.violations).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
 
@@ -104,7 +152,7 @@ test('@regression:keyboard-motion route focus, reduced motion, and 200% text rem
 
 test('@regression:mobile-touch-targets every mobile control is at least 44px square', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const route of ['/', '/demo', '/install', '/privacy', '/terms']) {
+  for (const route of ['/', '/?demo=1', '/demo', '/install', '/privacy', '/terms', '/missing-page']) {
     await page.goto(route);
     for (const control of await page.locator('a, button').all()) {
       if (!(await control.isVisible())) continue;
@@ -123,7 +171,7 @@ test('@claim:demo-complete demo verifies a three-file restore sample', () => {
   expect(output).toContain('Restore sample: 3 of 3 passed');
   expect(readFileSync(join(root, 'evidence', 'audit.json'), 'utf8')).toContain('"complete": true');
   const audit = JSON.parse(readFileSync(join(root, 'evidence', 'audit.json'), 'utf8'));
-  expect(audit.summary).toMatchObject({ source_entries: 5, replacement_entries: 5, missing: 0, changed: 0 });
+  expect(audit.summary).toMatchObject({ source_entries: 5, replacement_entries: 6, missing: 0, changed: 0, extra: 1, timestamp_only: 1 });
   expect(audit.restore_sample).toHaveLength(3);
   expect(readFileSync(join(root, 'evidence', 'restore-report.html'), 'utf8')).toContain('Restore sample passed');
 });
@@ -132,11 +180,11 @@ test('@regression:inspectable-demo-fixtures demo copies the shipped examples', (
   const root = join(temp(), 'demo');
   execFileSync(binary, ['demo', '--output', root]);
   const fixtures = [
-    'Documents/passport-scan.txt',
-    'Documents/tax-2024.txt',
-    'Photos/2024/coast.txt',
-    'Photos/2024/garden.txt',
-    'Notes/recipes.txt',
+    'Documents/cloud-exit-checklist.md',
+    'Documents/household-inventory.csv',
+    'Photos/2024/coast-walk.jpg',
+    'Photos/2024/garden-harvest.jpg',
+    'Notes/family-recipes.md',
   ];
   for (const fixture of fixtures) {
     const shipped = join('examples', 'source', fixture);
@@ -144,6 +192,36 @@ test('@regression:inspectable-demo-fixtures demo copies the shipped examples', (
     expect(readFileSync(join(root, 'sample-source', fixture))).toEqual(readFileSync(shipped));
     expect(readFileSync(join(root, 'sample-replacement', fixture))).toEqual(readFileSync(shipped));
   }
+  for (const photo of fixtures.filter((name) => name.endsWith('.jpg'))) {
+    expect(readFileSync(join('examples', 'source', photo)).subarray(0, 3)).toEqual(Buffer.from([0xff, 0xd8, 0xff]));
+  }
+  expect(readFileSync(join(root, 'sample-replacement', 'NAS-README.txt'), 'utf8')).toContain('harmless extra file');
+  expect(JSON.parse(readFileSync(join(root, 'evidence', 'audit.json'), 'utf8')).summary).toMatchObject({ extra: 1, timestamp_only: 1 });
+});
+
+test('@claim:browser-demo-provenance browser transcript and downloads match a fresh release CLI demo', async ({ page }) => {
+  const root = join(temp(), 'release-demo');
+  const transcript = execFileSync(releaseBinary, ['demo', '--output', root], { encoding: 'utf8', env: { ...process.env, SOURCE_DATE_EPOCH: '1787875200' } });
+  const audit = JSON.parse(readFileSync(join(root, 'evidence', 'audit.json'), 'utf8'));
+  await page.goto('/?demo=1');
+  await expect(page.getByLabel('Demo mode')).toContainText('sample data, nothing is saved');
+  await expect(page.locator('#demo-terminal')).toContainText(transcript.replaceAll(root, '/tmp/storage-exit-check-demo').trim());
+  for (const value of [audit.summary.source_entries, audit.summary.replacement_entries, audit.summary.extra, audit.summary.timestamp_only]) {
+    await expect(page.locator('.demo-key')).toContainText(String(value));
+  }
+  for (const sample of audit.restore_sample) {
+    await expect(page.locator('.sample-files')).toContainText(sample.path);
+    await expect(page.locator('.sample-files')).toContainText(sample.sha256.slice(0, 12));
+  }
+  await expect(page.getByRole('link', { name: 'View sample report' })).toHaveAttribute('href', '/sample-evidence/report.html');
+  await expect(page.getByRole('link', { name: 'Download sample evidence' })).toHaveAttribute('download', '');
+  const publishedAudit = await (await page.request.get('/sample-evidence/audit.json')).json();
+  expect(publishedAudit.summary).toEqual(audit.summary);
+  expect(publishedAudit.source_manifest_sha256).toBe(audit.source_manifest_sha256);
+  expect(publishedAudit.restore_sample).toEqual(audit.restore_sample);
+  const archive = await page.request.get('/sample-evidence/storage-exit-check-sample-evidence.zip');
+  expect(archive.ok()).toBe(true);
+  expect((await archive.body()).byteLength).toBeGreaterThan(1000);
 });
 
 test('@regression:static-hosting preserves app deep links, asset caching, and HTTP 404', () => {
@@ -153,7 +231,13 @@ test('@regression:static-hosting preserves app deep links, asset caching, and HT
     expect(config.routes).toContainEqual({ route, rewrite: '/index.html' });
   }
   expect(config.responseOverrides['404']).toEqual({ rewrite: '/404.html', statusCode: 404 });
-  expect(readFileSync('site/public/404.html', 'utf8')).toContain('<h1>This trail ends here</h1>');
+  const notFound = readFileSync('site/public/404.html', 'utf8');
+  expect(notFound).toContain('<h1>Page not found</h1>');
+  expect(notFound).toContain('Return home');
+  expect(notFound).toContain('apple-touch-icon');
+  expect(notFound).toContain('twitter:card');
+  expect(notFound).toContain('og-image-b1a471d6.webp');
+  expect(notFound).toContain('(external site)');
 
   const immutable = 'public, max-age=31536000, immutable';
   for (const route of ['/assets/*', '/field-guide-roots-fb69c545.webp', '/og-image-b1a471d6.webp']) {
@@ -162,7 +246,7 @@ test('@regression:static-hosting preserves app deep links, asset caching, and HT
   for (const route of ['/sw.js', '/index.html', '/404.html']) {
     expect(config.routes).toContainEqual({ route, headers: { 'Cache-Control': 'public, max-age=0, must-revalidate' } });
   }
-  expect(readFileSync('site/public/sw.js', 'utf8')).toContain("storage-exit-check-v3");
+  expect(readFileSync('site/public/sw.js', 'utf8')).toContain("storage-exit-check-v4");
 });
 
 test('@regression:offline-update production demo reloads offline with the current cache', async ({ page, context }) => {
@@ -183,7 +267,7 @@ test('@regression:offline-update production demo reloads offline with the curren
     };
   });
   expect(state.waiting).toBe(false);
-  expect(state.caches).toEqual(['storage-exit-check-v3']);
+  expect(state.caches).toEqual(['storage-exit-check-v4']);
 });
 
 test('@claim:no-upload browser and CLI demo make no network requests', async ({ page }) => {
@@ -198,6 +282,35 @@ test('@claim:no-upload browser and CLI demo make no network requests', async ({ 
   const { result, attempts } = guardedDemo(root);
   expect(result.status, result.stderr).toBe(0);
   expect(attempts).toBe('');
+});
+
+test('@claim:cli-demo-isolated traced demo avoids user data and keeps writes in its sandbox', () => {
+  test.skip(process.platform !== 'linux', 'LD_PRELOAD filesystem tracing is a Linux verification');
+  const root = join(temp(), 'isolated-demo');
+  const userData = join(temp(), 'user-data');
+  write(join(userData, 'Documents', 'private.txt'), 'must not be opened');
+  const { result, accesses } = tracedDemo(root, userData);
+  expect(result.status, result.stderr).toBe(0);
+  expect(result.stdout).toContain(`Sandbox: ${root}`);
+  expect(accesses.length).toBeGreaterThan(0);
+  const canonicalRoot = realpathSync(root);
+  for (const entry of accesses) {
+    const operation = entry.slice(0, 1);
+    const path = entry.slice(2).replaceAll('//', '/');
+    expect(path.startsWith(userData), `unexpected user-data access: ${entry}`).toBe(false);
+    if (operation === 'W') expect(path === root || path.startsWith(`${canonicalRoot}/`), `write escaped demo sandbox: ${entry}`).toBe(true);
+  }
+});
+
+test('@claim:default-demo-temp default demo creates its sandbox beneath the OS temp folder', () => {
+  const result = spawnSync(binary, ['demo'], { encoding: 'utf8' });
+  expect(result.status, result.stderr).toBe(0);
+  const match = result.stdout.match(/^Sandbox: (.+)$/m);
+  expect(match).not.toBeNull();
+  const sandbox = realpathSync(match![1]);
+  expect(sandbox.startsWith(`${realpathSync(tmpdir())}/`)).toBe(true);
+  expect(sandbox).toContain('storage-exit-check-demo-');
+  rmSync(sandbox, { recursive: true });
 });
 
 test('@claim:offline-cli bundled CLI demo needs no internet', () => {
@@ -248,16 +361,16 @@ test('@claim:read-only check leaves both input trees unchanged', () => {
   for (const output of [source, join(source, 'evidence'), join(replacement, 'evidence')]) {
     const rejected = spawnSync(binary, ['check', source, replacement, '--output', output], { encoding: 'utf8' });
     expect(rejected.status).toBe(1);
-    expect(rejected.stderr).toContain('output must be outside');
+    expect(rejected.stderr).toContain('report folder must be outside');
   }
   const alias = join(root, 'source-alias');
   symlinkSync(source, alias, 'dir');
   const aliased = spawnSync(binary, ['check', source, replacement, '--output', join(alias, 'evidence')], { encoding: 'utf8' });
   expect(aliased.status).toBe(1);
-  expect(aliased.stderr).toContain('output must be outside');
+  expect(aliased.stderr).toContain('report folder must be outside');
   const defaultInside = spawnSync(binary, ['check', '.', replacement], { cwd: source, encoding: 'utf8' });
   expect(defaultInside.status).toBe(1);
-  expect(defaultInside.stderr).toContain('output must be outside');
+  expect(defaultInside.stderr).toContain('report folder must be outside');
   expect(treeSnapshot(source)).toEqual(beforeSource);
   expect(treeSnapshot(replacement)).toEqual(beforeReplacement);
 });
@@ -295,6 +408,50 @@ test('@claim:redacted-report evidence omits private names and roots', () => {
     expect(content).not.toContain(source);
     expect(content).not.toContain(replacement);
   }
+});
+
+test('@claim:redacted-restore redacted audits match both size and SHA-256', () => {
+  const root = temp();
+  const source = join(root, 'source');
+  const replacement = join(root, 'replacement');
+  const restored = join(root, 'restored');
+  write(join(source, 'Private', 'account-note.txt'), 'RIGHT');
+  write(join(replacement, 'Private', 'account-note.txt'), 'RIGHT');
+  write(join(restored, 'wrong-same-size.bin'), 'WRONG');
+  write(join(restored, 'renamed-correct.bin'), 'RIGHT');
+  const evidence = join(root, 'evidence');
+  execFileSync(binary, ['check', source, replacement, '--redact', '--output', evidence]);
+  const passed = spawnSync(binary, ['--json', 'verify-restore', join(evidence, 'audit.json'), restored], { encoding: 'utf8' });
+  expect(passed.status, passed.stderr).toBe(0);
+  expect(JSON.parse(passed.stdout)).toMatchObject({ passed: 1, failed: 0 });
+  rmSync(join(restored, 'renamed-correct.bin'));
+  const failed = spawnSync(binary, ['--json', 'verify-restore', join(evidence, 'audit.json'), restored], { encoding: 'utf8' });
+  expect(failed.status).toBe(3);
+  expect(JSON.parse(failed.stdout)).toMatchObject({ passed: 0, failed: 1 });
+});
+
+test('@claim:duplicate-file-restore redacted restore requires every sampled copy', () => {
+  const root = temp();
+  const source = join(root, 'source');
+  const replacement = join(root, 'replacement');
+  const restored = join(root, 'restored');
+  for (const path of ['Album/one.bin', 'Album/copy.bin']) {
+    write(join(source, path), 'identical-photo-bytes');
+    write(join(replacement, path), 'identical-photo-bytes');
+  }
+  write(join(restored, 'first.bin'), 'identical-photo-bytes');
+  const evidence = join(root, 'evidence');
+  execFileSync(binary, ['check', source, replacement, '--redact', '--sample-size', '2', '--output', evidence]);
+  const audit = JSON.parse(readFileSync(join(evidence, 'audit.json'), 'utf8'));
+  expect(audit.restore_sample).toHaveLength(2);
+  expect(audit.restore_sample[0].sha256).toBe(audit.restore_sample[1].sha256);
+  const oneCopy = spawnSync(binary, ['--json', 'verify-restore', join(evidence, 'audit.json'), restored], { encoding: 'utf8' });
+  expect(oneCopy.status).toBe(3);
+  expect(JSON.parse(oneCopy.stdout)).toMatchObject({ passed: 1, failed: 1 });
+  write(join(restored, 'second.bin'), 'identical-photo-bytes');
+  const twoCopies = spawnSync(binary, ['--json', 'verify-restore', join(evidence, 'audit.json'), restored], { encoding: 'utf8' });
+  expect(twoCopies.status, twoCopies.stderr).toBe(0);
+  expect(JSON.parse(twoCopies.stdout)).toMatchObject({ passed: 2, failed: 0 });
 });
 
 test('@claim:repeatable-sample unchanged manifests select the same sample', () => {
@@ -380,7 +537,7 @@ test('@claim:separate-restore restore verification rejects audited input trees a
     const report = join(root, `${name.replaceAll(' ', '-')}-report.html`);
     const rejected = spawnSync(binary, ['verify-restore', join(evidence, 'audit.json'), candidate, '--output', report], { encoding: 'utf8' });
     expect(rejected.status, name).toBe(1);
-    expect(rejected.stderr, name).toContain('restored sample must be a separate directory');
+    expect(rejected.stderr, name).toContain('restore folder must be separate');
     expect(existsSync(report), name).toBe(false);
   }
 
@@ -397,7 +554,7 @@ test('@claim:separate-restore restore verification rejects audited input trees a
   expect(JSON.parse(redactedAudit).restore_boundary_fingerprints).toHaveLength(2);
   const redactedRejected = spawnSync(binary, ['verify-restore', join(redactedEvidence, 'audit.json'), source], { encoding: 'utf8' });
   expect(redactedRejected.status).toBe(1);
-  expect(redactedRejected.stderr).toContain('restored sample must be a separate directory');
+  expect(redactedRejected.stderr).toContain('restore folder must be separate');
 });
 
 test('@claim:symlink-policy links are recorded as links and never followed', () => {

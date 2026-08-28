@@ -80,9 +80,9 @@ p { max-width: 68ch; }
 .steps h3, .steps p { margin: 0; }
 
 .boundaries { padding-block: 104px; display: grid; grid-template-columns: 1.35fr .65fr; gap: 80px; }
-.boundaries aside { padding: 32px; background: var(--moss-dark); color: var(--white); border-radius: 2px 22px 2px 2px; }
-.boundaries aside ul { padding-left: 20px; }
-.boundaries aside li { margin-block: 10px; }
+.cancel-checklist { padding: 32px; background: var(--moss-dark); color: var(--white); border-radius: 2px 22px 2px 2px; }
+.cancel-checklist ul { padding-left: 20px; }
+.cancel-checklist li { margin-block: 10px; }
 .install-callout { padding-block: 80px; color: var(--white); background: var(--moss-dark); }
 .install-callout .section-wrap { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 16px 40px; }
 .install-callout .specimen-label { grid-column: 1 / -1; margin: 0; color: var(--lichen); }
@@ -101,10 +101,20 @@ p { max-width: 68ch; }
 .demo-page { width: min(1060px, calc(100% - 48px)); }
 .demo-page .terminal { margin-block: 48px; }
 .demo-key { border-top: 1px solid var(--ink); padding-top: 48px; }
-.demo-key dl { display: grid; grid-template-columns: repeat(3, 1fr); margin-block: 32px; }
+.demo-key dl { display: grid; grid-template-columns: repeat(5, 1fr); margin-block: 32px; }
 .demo-key dl div { border-left: 1px solid var(--ink); padding: 16px 24px; }
 .demo-key dt { font: 3.4rem Georgia, serif; }
 .demo-key dd { margin: 0; }
+.recovery-caveat { padding: 16px 20px; border-left: 4px solid var(--ochre); background: var(--paper-deep); }
+.evidence-actions { display: flex; flex-wrap: wrap; gap: 16px; margin-block: 32px 56px; }
+.button-secondary { background: transparent; color: var(--moss-dark); }
+.button-secondary:hover { background: var(--paper-deep); }
+.sample-files { margin: 24px 0 32px; padding: 0; list-style: none; border-top: 1px solid var(--ink); }
+.sample-files li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; padding: 14px 0; border-bottom: 1px solid rgba(23,37,29,.35); }
+.sample-files code, .sample-files span, .manifest code { overflow-wrap: anywhere; }
+.sample-files > li > span { color: #46544b; font-size: 14px; font-variant-numeric: tabular-nums; }
+.manifest { font-size: 14px; }
+.error-code { color: var(--moss-dark); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .not-found { position: relative; }
 .not-found::after { content: "?"; position: absolute; z-index: -1; right: 5%; top: 5%; color: var(--paper-deep); font: 20rem Georgia, serif; }
 
@@ -117,6 +127,7 @@ p { max-width: 68ch; }
   .hero-plate { margin: 0 -24px -32px; }
   .hero-plate figcaption { padding-inline: 24px; }
   .preview, .boundaries { grid-template-columns: 1fr; gap: 48px; }
+  .demo-key dl { grid-template-columns: repeat(2, 1fr); }
   .install-callout .section-wrap { grid-template-columns: 1fr; }
   .install-callout .specimen-label, .install-callout code { grid-column: 1; }
 }
@@ -135,7 +146,10 @@ p { max-width: 68ch; }
   .steps li { grid-template-columns: 62px 1fr; }
   .demo-banner { align-items: flex-start; padding-inline: 16px; }
   .demo-actions { align-items: flex-end; flex-direction: column; gap: 4px; }
-  .demo-key dl { grid-template-columns: 1fr; }
+  .demo-page { padding-top: 56px; }
+  .demo-key dl { grid-template-columns: 1fr 1fr; }
+  .demo-key dl div { padding-inline: 14px; }
+  .sample-files li { grid-template-columns: 1fr; gap: 4px; }
   .site-footer { grid-template-columns: 1fr; padding-inline: 16px; }
   .site-footer nav { flex-wrap: wrap; gap: 16px; }
   .site-footer .build { grid-column: 1; }

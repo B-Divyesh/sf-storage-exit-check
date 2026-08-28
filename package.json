@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite site",
     "build:cli": "cargo build --release",
-    "build:site": "vite build site --outDir ../dist/site --emptyOutDir",
+    "generate:demo": "node scripts/generate-demo.mjs",
+    "build:site": "cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir",
     "build": "npm run build:cli && npm run build:site",
     "preview": "vite preview --outDir dist/site",
     "typecheck": "tsc --noEmit",

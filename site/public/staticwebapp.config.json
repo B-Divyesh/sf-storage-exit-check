@@ -17,6 +17,13 @@
       "headers": { "Cache-Control": "public, max-age=31536000, immutable" }
     },
     {
+      "route": "/sample-evidence/*",
+      "headers": {
+        "Cache-Control": "public, max-age=0, must-revalidate",
+        "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; frame-ancestors 'none'"
+      }
+    },
+    {
       "route": "/sw.js",
       "headers": { "Cache-Control": "public, max-age=0, must-revalidate" }
     },

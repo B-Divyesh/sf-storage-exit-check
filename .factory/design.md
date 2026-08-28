@@ -86,4 +86,24 @@ instant. Only opacity and transforms animate.
 - Favicon and small UI marks are original, hand-authored SVG line drawings stored
   in the repository.
 
-The generated source and its JSON provenance remain in `site/assets/source/`.
+The optimized, hashed artwork is stored in `site/public/`; its prompt,
+deployment, and authorship record are preserved in this document.
+
+## Demo fixture provenance
+
+The two bundled JPEG sample photos are original generated assets, not stock
+photos. They were generated on 28 August 2026 with the factory image deployment
+and downscaled locally to 720 px for a small CLI package. Full prompt and model
+records are stored in `examples/assets/`.
+
+- `coast-walk.jpg`: “An original candid coastal landscape photograph from a
+  quiet family trip; wind-shaped grass above a slate-blue shoreline, distant
+  cliffs, natural compact-camera detail, overcast light, no people, text,
+  logos, watermark, or recognizable private property.”
+- `garden-harvest.jpg`: “An original candid family archive photograph of raised
+  garden beds, tomatoes, herbs, a watering can, and stone path; natural
+  compact-camera detail, early light, no people, text, logos, watermark,
+  addresses, or recognizable private property.”
+
+The checklist, inventory, recipe notes, and NAS note are hand-authored for this
+repository. They contain fictional names and inventory values.
