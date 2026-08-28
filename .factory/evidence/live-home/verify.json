@@ -1,0 +1,14 @@
+{
+  "url": "https://storage-exit-check.sociobot.in/",
+  "loadMs": 41127,
+  "errors": [],
+  "a11y": {
+    "title": "Storage Exit Check — check a storage move",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 1768
+  }
+}

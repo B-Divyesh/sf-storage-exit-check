@@ -1,0 +1,94 @@
+{
+  "routes": {
+    "/": {
+      "status": 200,
+      "title": "Storage Exit Check — check a storage move",
+      "h1": 1,
+      "main": 1,
+      "axe": [],
+      "errors": [],
+      "overflow": false,
+      "minTarget": 44
+    },
+    "/?demo=1": {
+      "status": 200,
+      "title": "Demo — Storage Exit Check",
+      "h1": 1,
+      "main": 1,
+      "axe": [],
+      "errors": [],
+      "overflow": false,
+      "minTarget": 44
+    },
+    "/demo": {
+      "status": 200,
+      "title": "Demo — Storage Exit Check",
+      "h1": 1,
+      "main": 1,
+      "axe": [],
+      "errors": [],
+      "overflow": false,
+      "minTarget": 44
+    },
+    "/install": {
+      "status": 200,
+      "title": "Install — Storage Exit Check",
+      "h1": 1,
+      "main": 1,
+      "axe": [],
+      "errors": [],
+      "overflow": false,
+      "minTarget": 44
+    },
+    "/privacy": {
+      "status": 200,
+      "title": "Privacy — Storage Exit Check",
+      "h1": 1,
+      "main": 1,
+      "axe": [],
+      "errors": [],
+      "overflow": false,
+      "minTarget": 44
+    },
+    "/terms": {
+      "status": 200,
+      "title": "Terms — Storage Exit Check",
+      "h1": 1,
+      "main": 1,
+      "axe": [],
+      "errors": [],
+      "overflow": false,
+      "minTarget": 44
+    },
+    "/no-such-polish-page": {
+      "status": 404,
+      "title": "Page not found — Storage Exit Check",
+      "h1": 1,
+      "main": 1,
+      "axe": [],
+      "errors": [],
+      "expectedErrors": [
+        "Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "overflow": false,
+      "minTarget": 44
+    }
+  },
+  "expected404Console": "Chromium reports the deliberate main-document HTTP 404 as a resource error.",
+  "outsideRequests": [],
+  "cookies": [],
+  "storage": {
+    "local": [],
+    "session": [],
+    "databases": []
+  },
+  "offline": true,
+  "links": {
+    "/sample-evidence/report.html": 200,
+    "/sample-evidence/audit.json": 200,
+    "/sample-evidence/storage-exit-check-sample-evidence.zip": 200,
+    "/404.css": 200,
+    "/apple-touch-icon.png": 200,
+    "/og-image-b1a471d6.webp": 200
+  }
+}

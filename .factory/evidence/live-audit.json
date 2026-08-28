@@ -1,0 +1,60 @@
+{
+  "schema_version": 2,
+  "tool_version": "0.1.0",
+  "created_unix_seconds": 1787875200,
+  "source": "/tmp/storage-exit-check-build-demo/sample-source",
+  "replacement": "/tmp/storage-exit-check-build-demo/sample-replacement",
+  "source_manifest_sha256": "b7201b43ad1cd184c48ea809492800ae4f5b6a7d43ed0885c7aabe4e83fcdb8d",
+  "replacement_manifest_sha256": "75a1179d571d1eaa1ea2e38a9173c5a01f9e7ade71873f50ee479c097a987d14",
+  "restore_boundary_fingerprints": [
+    "46520ea115220ebdad87ece77f654d44f2bd117d5a13b193f73298905f4e4751",
+    "c2ba76cf9ac7a4aeeb758b25c4b83e982ef848fd10ea56a86e9982dc1bd32720"
+  ],
+  "redacted": false,
+  "complete": true,
+  "summary": {
+    "source_entries": 5,
+    "replacement_entries": 6,
+    "source_bytes": 179424,
+    "replacement_bytes": 179556,
+    "matching_files": 5,
+    "missing": 0,
+    "extra": 1,
+    "changed": 0,
+    "timestamp_only": 1
+  },
+  "differences": [
+    {
+      "path": "NAS-README.txt",
+      "kind": "extra",
+      "detail": "Present in the replacement but absent from the source."
+    }
+  ],
+  "sample_seed": "5e04c47c3e7a048c8fc2421093cb118f971bd884c8d207fa04d1b40940045a46",
+  "restore_sample": [
+    {
+      "label": "SAMPLE-001",
+      "path": "Photos/2024/garden-harvest.jpg",
+      "size": 105877,
+      "sha256": "7261fc9d8261b5b3014d849476c92d53b209daa2a987b7eec14c0fc43b02b860"
+    },
+    {
+      "label": "SAMPLE-002",
+      "path": "Documents/household-inventory.csv",
+      "size": 202,
+      "sha256": "e224bd3aa50d3138d417de40eab0371cf92cdcc800c5d0a8df2205ef6c224346"
+    },
+    {
+      "label": "SAMPLE-003",
+      "path": "Documents/cloud-exit-checklist.md",
+      "size": 344,
+      "sha256": "0d34d93f5f6835a733020d45593eb2b86653f0c930f838f66e258714599fdf50"
+    }
+  ],
+  "notes": [
+    "Symbolic links are compared as links and are never followed.",
+    "Timestamp-only differences do not fail the content check because filesystems round and preserve times differently.",
+    "A sampled restore reduces uncertainty. It does not prove full disaster recovery.",
+    "The check does not modify either input folder."
+  ]
+}
