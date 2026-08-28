@@ -5,6 +5,9 @@
 This repair addresses the release-blocking P1 in independent verification 3
 for candidate `71aa6f5557b20259c510f864e697ef8e8c86eabc`.
 
+Repair commit: `4f56a381a775dec27d48fcc8db60864777731215` (this handoff is
+included in that commit).
+
 `verify-restore` now requires the alleged restore directory to be separate
 from both audited inputs. New audits use schema version 2 and contain two
 opaque SHA-256 boundary fingerprints of canonical input roots. The verifier
