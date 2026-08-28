@@ -11,6 +11,8 @@ Implementation commits:
 
 - `4e17d91` — product, claims, demo, copy, routing, 404, and fixture repairs
 - `8d1e7f1` — release-CLI browser evidence generator
+- final evidence tests also inspect JPEG signatures, report counts and hashes,
+  and the exact four-file ZIP inventory
 
 Deployment ID: `fe2ebfcd-a04b-403c-8503-18e4f1b472dd`.
 

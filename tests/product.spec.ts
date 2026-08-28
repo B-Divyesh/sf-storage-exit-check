@@ -174,6 +174,9 @@ test('@claim:demo-complete demo verifies a three-file restore sample', () => {
   expect(audit.summary).toMatchObject({ source_entries: 5, replacement_entries: 6, missing: 0, changed: 0, extra: 1, timestamp_only: 1 });
   expect(audit.restore_sample).toHaveLength(3);
   expect(readFileSync(join(root, 'evidence', 'restore-report.html'), 'utf8')).toContain('Restore sample passed');
+  for (const photo of ['Photos/2024/coast-walk.jpg', 'Photos/2024/garden-harvest.jpg']) {
+    expect(readFileSync(join(root, 'sample-source', photo)).subarray(0, 3)).toEqual(Buffer.from([0xff, 0xd8, 0xff]));
+  }
 });
 
 test('@regression:inspectable-demo-fixtures demo copies the shipped examples', () => {
@@ -219,9 +222,17 @@ test('@claim:browser-demo-provenance browser transcript and downloads match a fr
   expect(publishedAudit.summary).toEqual(audit.summary);
   expect(publishedAudit.source_manifest_sha256).toBe(audit.source_manifest_sha256);
   expect(publishedAudit.restore_sample).toEqual(audit.restore_sample);
+  const publishedReportResponse = await page.request.get('/sample-evidence/report.html');
+  expect(publishedReportResponse.ok()).toBe(true);
+  const publishedReport = await publishedReportResponse.text();
+  expect(publishedReport).toContain(`${audit.summary.source_entries} entries`);
+  expect(publishedReport).toContain(`${audit.summary.replacement_entries} entries`);
+  for (const sample of audit.restore_sample) expect(publishedReport).toContain(sample.sha256.slice(0, 12));
   const archive = await page.request.get('/sample-evidence/storage-exit-check-sample-evidence.zip');
   expect(archive.ok()).toBe(true);
   expect((await archive.body()).byteLength).toBeGreaterThan(1000);
+  const archiveFiles = execFileSync('unzip', ['-Z1', 'dist/site/sample-evidence/storage-exit-check-sample-evidence.zip'], { encoding: 'utf8' }).trim().split('\n').sort();
+  expect(archiveFiles).toEqual(['audit.json', 'report.html', 'restore-report.html', 'restore-sample.txt']);
 });
 
 test('@regression:static-hosting preserves app deep links, asset caching, and HTTP 404', () => {
