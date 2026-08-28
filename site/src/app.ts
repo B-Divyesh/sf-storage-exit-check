@@ -87,7 +87,7 @@ cargo install --path .</code></pre><h2>Try the sample</h2><pre tabindex="0"><cod
   '/terms': {
     title: 'Terms — Storage Exit Check',
     description: 'Terms for the free Storage Exit Check utility.',
-    html: shell(`<article class="page-head prose"><h1 tabindex="-1">Use the reports as part of your decision</h1><p>Effective 28 August 2026.</p><h2>License</h2><p>The software is free under the MIT License.</p><h2>No recovery guarantee</h2><p>A sample result does not guarantee every file can recover.</p><p>You remain responsible for backups, access, and cancellation decisions.</p><h2>Safe use</h2><p>Keep the source folder until you review every result and the restore plan.</p><h2>Questions</h2><p>Email <a href="mailto:hello@sociobot.in">hello@sociobot.in</a>.</p></article>`),
+    html: shell(`<article class="page-head prose"><h1 tabindex="-1">Use the reports as part of your decision</h1><p>Effective 28 August 2026.</p><h2>License</h2><p>The software is free under the MIT License.</p><h2>No recovery guarantee</h2><p>A sample result does not guarantee that every file can be recovered.</p><p>You remain responsible for backups, access, and cancellation decisions.</p><h2>Safe use</h2><p>Keep the source folder until you review every result and the restore plan.</p><h2>Questions</h2><p>Email <a href="mailto:hello@sociobot.in">hello@sociobot.in</a>.</p></article>`),
   },
 };
 

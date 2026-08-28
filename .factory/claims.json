@@ -15,10 +15,17 @@
   },
   {
     "id": "no-upload",
-    "claim": "The CLI and browser demo upload no files or make third-party requests.",
+    "claim": "The CLI and website upload no files or make third-party requests.",
     "where": "landing facts, privacy page, README",
     "test": "npm test -- --grep @claim:no-upload",
-    "sandbox": "fresh browser context on /demo plus a CLI demo under an LD_PRELOAD network-call guard; fail any browser request outside the origin or CLI socket/DNS attempt"
+    "sandbox": "fresh browser context visits every public route, the real app 404, sample report, and evidence download; fail any browser request outside the origin; run the CLI demo under an LD_PRELOAD network-call guard and fail any socket/DNS attempt"
+  },
+  {
+    "id": "check-write-boundary",
+    "claim": "The check reads both input folders and writes only to the report folder.",
+    "where": "landing boundaries",
+    "test": "npm test -- --grep @claim:check-write-boundary",
+    "sandbox": "fresh source, replacement, report, synthetic home, and unrelated canary folders; trace the check with LD_PRELOAD and assert each observed write is beneath the report folder"
   },
   {
     "id": "offline-cli",

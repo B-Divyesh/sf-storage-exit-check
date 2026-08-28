@@ -12,13 +12,13 @@ and it makes no network requests.
 It is evidence for a cancellation decision, not a backup or sync tool. A sample
 restore does not prove full disaster recovery.
 
-## Try the sandbox
+## Try the demo
 
 ```sh
 cargo run -- demo
 ```
 
-The demo bundles two original JPEG photos, a household inventory, a checklist,
+The demo bundles two JPEG photos, a household inventory, a checklist,
 and recipe notes from [`examples/source`](examples/source). The replacement
 folder also contains one NAS setup note and one timestamp-only difference. The
 demo checks all five source files, restores three selected files, and prints
@@ -142,6 +142,14 @@ npm run pack:cli
 The site is Vite with vanilla TypeScript. The CLI uses Rust and SHA-256. It
 records symbolic links without opening their targets. The CLI sends no usage
 data and does not call an online service while it runs.
+
+## Deploy
+
+`npm run build` creates the static site in `dist/site/`. Deploy that directory
+with the included `staticwebapp.config.json`, which preserves app routes and
+serves the designed 404 page. Param Factory owns production deployment. Build a
+CLI release artifact with `npm run pack:cli`; this repository does not publish
+it automatically.
 
 ## Project records
 

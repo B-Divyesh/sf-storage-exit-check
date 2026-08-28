@@ -1,4 +1,4 @@
-# Copy audit — polish round 1
+# Copy audit — polish round 2
 
 Count method: whitespace-separated words. Commands and file paths are not prose.
 No public sentence exceeds 22 words. No banned marketing word appears in the
@@ -51,7 +51,18 @@ landing page, product routes, 404, or README.
 | Terms | 1 | — |
 | Built by Param Factory | 4 | — |
 
-## Former review flags
+## Round-two copy checks
+
+| Copy | Words | Result |
+| --- | ---: | --- |
+| Try the demo | 3 | Uses the same public name as the site route and action. |
+| The demo bundles two JPEG photos, a household inventory, a checklist, and recipe notes from examples/source. | 16 | Provenance adjective removed; asset provenance remains in the visual thesis. |
+| The check reads both input folders and writes only to your report folder. | 13 | Listed and traced by `check-write-boundary`. |
+| It requests only this site's pages and assets. | 8 | Listed and exercised across all public routes by `no-upload`. |
+| A sample result does not guarantee that every file can be recovered. | 12 | Direct recovery limitation. |
+| Check storage moves and test selected restores before cancelling cloud storage. | 11 | Verb-first catalog description; 75 characters. |
+
+## Earlier review flags
 
 - The first-screen claim now limits the evidence to selected restored files.
 - The preview and install headings name their sections directly.
@@ -60,6 +71,9 @@ landing page, product routes, 404, or README.
 - The redacted identifier, symbolic-link, implementation, and network text now
   uses plain descriptions.
 - The 404 says “Page not found” and “Return home.”
+- README now explains that Param Factory deploys `dist/site/` with the supplied
+  route and 404 configuration, while `npm run pack:cli` only builds a release
+  artifact.
 
 ## Terminology
 

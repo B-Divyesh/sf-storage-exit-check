@@ -1,1 +1,1 @@
-Check a storage move and test selected restores before cancelling cloud storage.
+Check storage moves and test selected restores before cancelling cloud storage.

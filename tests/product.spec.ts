@@ -62,6 +62,24 @@ function tracedDemo(root: string, userData: string) {
   return { result, accesses: existsSync(log) ? readFileSync(log, 'utf8').trim().split('\n').filter(Boolean) : [] };
 }
 
+function tracedCheck(source: string, replacement: string, output: string, userData: string) {
+  const guard = join(temp(), 'filesystem-guard.so');
+  const compile = spawnSync('cc', ['-shared', '-fPIC', '-ldl', 'tests/filesystem_guard.c', '-o', guard], { encoding: 'utf8' });
+  expect(compile.status, compile.stderr).toBe(0);
+  const log = join(temp(), 'filesystem-access.log');
+  const result = spawnSync(binary, ['check', source, replacement, '--output', output], {
+    cwd: temp(),
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      HOME: userData,
+      LD_PRELOAD: guard,
+      STORAGE_EXIT_CHECK_FS_LOG: log,
+    },
+  });
+  return { result, accesses: existsSync(log) ? readFileSync(log, 'utf8').trim().split('\n').filter(Boolean) : [] };
+}
+
 test('landing page has the required structure at 390px', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
@@ -281,18 +299,49 @@ test('@regression:offline-update production demo reloads offline with the curren
   expect(state.caches).toEqual(['storage-exit-check-v4']);
 });
 
-test('@claim:no-upload browser and CLI demo make no network requests', async ({ page }) => {
+test('@claim:no-upload browser and CLI make no third-party requests', async ({ page }) => {
   const outside: string[] = [];
   page.on('request', (request) => {
     if (new URL(request.url()).origin !== 'http://127.0.0.1:4173') outside.push(request.url());
   });
+  for (const route of ['/', '/?demo=1', '/demo', '/install', '/privacy', '/terms', '/missing-page', '/404.html', '/sample-evidence/report.html']) {
+    await page.goto(route);
+  }
   await page.goto('/demo');
   await page.getByRole('button', { name: 'Reset demo' }).click();
+  const download = page.waitForEvent('download');
+  await page.getByRole('link', { name: 'Download sample evidence' }).click();
+  await (await download).path();
   expect(outside).toEqual([]);
   const root = join(temp(), 'guarded-demo');
   const { result, attempts } = guardedDemo(root);
   expect(result.status, result.stderr).toBe(0);
   expect(attempts).toBe('');
+});
+
+test('@claim:check-write-boundary check writes only to its report folder', () => {
+  test.skip(process.platform !== 'linux', 'LD_PRELOAD filesystem tracing is a Linux verification');
+  const root = temp();
+  const source = join(root, 'source');
+  const replacement = join(root, 'replacement');
+  const output = join(root, 'report');
+  const userData = join(root, 'user-data');
+  const unrelated = join(root, 'unrelated-canary');
+  write(join(source, 'nested', 'same.txt'), 'same');
+  write(join(replacement, 'nested', 'same.txt'), 'same');
+  write(join(userData, 'private.txt'), 'must not be opened');
+  write(join(unrelated, 'canary.txt'), 'must not be touched');
+  const { result, accesses } = tracedCheck(source, replacement, output, userData);
+  expect(result.status, result.stderr).toBe(0);
+  expect(accesses.length).toBeGreaterThan(0);
+  const canonicalOutput = realpathSync(output);
+  for (const entry of accesses) {
+    const operation = entry.slice(0, 1);
+    const path = entry.slice(2).replaceAll('//', '/');
+    expect(path.startsWith(userData), `unexpected user-data access: ${entry}`).toBe(false);
+    expect(path.startsWith(unrelated), `unexpected unrelated-folder access: ${entry}`).toBe(false);
+    if (operation === 'W') expect(path === canonicalOutput || path.startsWith(`${canonicalOutput}/`), `write escaped report folder: ${entry}`).toBe(true);
+  }
 });
 
 test('@claim:cli-demo-isolated traced demo avoids user data and keeps writes in its sandbox', () => {
