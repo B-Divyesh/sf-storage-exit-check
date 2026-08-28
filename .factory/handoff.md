@@ -1,38 +1,46 @@
-# Storage Exit Check handoff — adversarial review 2
+# Storage Exit Check handoff — polish round 2
 
 ## Status
 
-Review complete with verdict **FAIL**. The full report is
-`.factory/review-2.md`. No product code was changed.
+All 29 cumulative findings are closed. The repair preserves the local Rust CLI
+and botanical field-guide static site. The closure map is in
+`.factory/polish-2.md`.
 
-The first-read, demo, all 23 declared claim commands, full local suite, build,
-formatting, Clippy, live routing, dead-link crawl, accessibility, mobile layout,
-offline demo, and current live artifact all passed. Six findings remain: two
-blocking claim-scope gaps, one unlisted README provenance claim, two README copy
-or deployment-documentation defects, and one terms sentence defect.
+## What changed
 
-## Verification performed
+- Added `check-write-boundary`, a Linux `LD_PRELOAD` trace that proves `check`
+  writes only under its selected report folder and does not touch synthetic
+  home or unrelated canary data.
+- Broadened `no-upload` from the demo alone to every public app route, routed
+  and static 404s, the printable report, and the evidence download.
+- Removed the untestable README originality claim, standardized the public
+  name as “demo,” added deployment ownership/instructions, and corrected the
+  recovery limitation in Terms.
+- Updated the catalog sentence to a verb-first, 75-character description.
 
-- Fresh clone: `/tmp/storage-exit-review2-4oAirc/repo` at
-  `f59242ee4814401753f8742886a0de592e34f91a`.
-- Every exact `.factory/claims.json` command: 23 passed, 0 failed.
-- `npm test`: 10 Rust tests and 32 Playwright tests passed.
-- `npm run build`: passed and produced `dist/site/`.
-- `cargo fmt --all -- --check`: passed.
-- `cargo clippy --all-targets -- -D warnings`: passed.
-- Release CLI demo ran in `/tmp/storage-exit-review2-cli-OyTAJe/demo` and wrote
-  the complete four-file evidence set.
-- Live site checked cold at 390×844 and 1440×900.
-- Live Axe scans found zero violations on every route and the 404 at both widths.
-- Live demo reset, exit, offline reload, storage isolation, and request origin
-  checks passed.
-- Live HTML, JavaScript, and CSS hashes match the fresh build.
+## Verification
 
-## Known gaps and next steps
+- Local: `npm test` passed (10 Rust + 33 Playwright tests); `npm run build`,
+  `cargo fmt --all -- --check`, `cargo clippy --all-targets -- -D warnings`,
+  and `npm run pack:cli` passed.
+- Claims: all 24 exact commands from `.factory/claims.json` passed in a clean
+  clone after `npm ci`.
+- Build output: `dist/site/`; initial JavaScript is 12.62 kB (4.88 kB gzip)
+  and CSS is 10.38 kB (3.34 kB gzip).
+- Accessibility: the full route suite has zero Axe violations, keyboard
+  navigation, visible focus, 44 px mobile controls, reduced-motion behavior,
+  one h1/main, route titles, legal links, and static 404 metadata coverage.
+- Visual evidence: `.factory/evidence/polish-2-home-mobile.png`,
+  `.factory/evidence/polish-2-demo-mobile.png`, and
+  `.factory/evidence/polish-2-terms-desktop.png`.
 
-Resolve F-2-1 through F-2-6 in `.factory/review-2.md`. In particular, trace a
-normal `check` before promising it writes only to the report folder, and expand
-the same-origin browser test to the whole public site or narrow that privacy
-sentence. Then remove or test the README originality statement, standardize
-“demo,” document deployment ownership, correct the terms sentence, and rerun
-the entire review from clean browser contexts and a fresh clone.
+## Deploy and handoff
+
+The work order builds `dist/site/` with `npm ci && npm run build:site`. Param
+Factory owns production deployment; the repository includes the required
+`staticwebapp.config.json` route and 404 configuration. The final commit and
+post-deploy cold live checks are recorded below once push/deployment completes.
+
+## Known gaps
+
+None.
