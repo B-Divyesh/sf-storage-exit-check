@@ -1,115 +1,138 @@
 # Independent verification 2 — FAIL
 
-**Candidate:** `cd9436694a588c7e4f338b4b7479418354ba8555`  
-**Live URL:** <https://storage-exit-check.sociobot.in>  
-**Verified:** 2026-08-28 UTC  
+**Candidate:** `cd9436694a588c7e4f338b4b7479418354ba8555`
+
+**Live URL:** <https://storage-exit-check.sociobot.in>
+
+**Verified:** 2026-08-28 UTC
+
 **Verdict:** **FAIL — release-blocking correctness, safety, and claims defects remain.**
 
 The earlier deployment-only concern is not reproducible. The live site is
-available, its principal files match this candidate byte-for-byte, and the
-previous 404 and caching repairs are deployed. This verdict comes from fresh
-CLI boundary testing and the acceptance contract, not deployment state.
+available, and all deployable files checked match this candidate byte for byte.
+The failure comes from fresh CLI behavior and incomplete claim coverage, not
+deployment state.
 
-## First read — PASS
+## First-read gate — PASS
 
-A cold desktop load says the tool **checks a storage move before cancelling**,
-is **for people leaving cloud storage who need proof their local copy can
-restore**, and presents **Try it with sample data** as the first action. Its
-adjacent sentence says the click shows a complete check and restore test. The
-one-click `/demo` route shows a realistic five-file result, the persistent
-“Demo — sample data, nothing is saved” banner, **Reset demo**, and **Start for
-real**.
+A cold load says the tool **checks a storage move before cancelling**, is **for
+people leaving cloud storage who need proof their local copy can restore**, and
+presents **Try it with sample data** as the first action. All three answers and
+the action are visible without scrolling at 1440×900 and 390×844. One click
+opens `/demo`, which shows the completed five-file check, restore result, demo
+notice, **Reset demo**, and **Start for real**.
 
 ## Release-blocking findings
 
-### P1 — distinct Unix filenames collapse and produce a false passing verdict
+### P1 — distinct Unix filenames collapse and produce a false pass
 
-The manifest key uses `to_string_lossy()` for each path component. Distinct
-non-UTF-8 filenames can therefore become the same replacement-character key
-and overwrite one another in the manifest map.
+The manifest key uses lossy Unicode conversion. Distinct non-UTF-8 filenames
+can become the same replacement-character key and overwrite one another.
 
-Fresh release-binary reproduction:
+Fresh release-binary reproduction used source filenames with raw one-byte names
+`80` and `81`; the replacement contained only `81`. Source `80` held
+`source-only`; both `81` files held `shared`. The tool returned:
 
-1. The source contained two files whose one-byte names were hex `80` and `81`.
-   Their contents were `source-only` and `shared`.
-2. The replacement contained only the hex `81` file with content `shared`.
-3. `storage-exit-check --json check SOURCE REPLACEMENT --output REPORT`
-   returned exit **0**, status `ready_for_restore_test`, `complete: true`, one
-   source entry, one replacement entry, and zero missing files.
-4. The real source directory had two files and the replacement had one. The
-   audit exposed the collapsed path as `�`.
+```text
+NONUTF_EXIT=0 SOURCE_REAL_COUNT=2 REPLACEMENT_REAL_COUNT=1
+status: ready_for_restore_test
+complete: true
+source_entries: 1
+replacement_entries: 1
+missing: 0
+sample path: �
+```
 
-Evidence sandbox: `/tmp/storage-exit-check-nonutf8-EAb52M`. This is dangerous
-for the core job: a missing source file can be hidden behind a cancellation-
-ready result.
+Evidence sandbox: `/tmp/storage-exit-check-nonutf8-confirm-dbCDr5`.
 
-**Required correction:** represent native path bytes without lossy collisions
-on Unix (and equivalent lossless identity on each platform), reject paths that
-cannot be represented if necessary, and add a regression/claim case proving
-two distinct names cannot collapse.
+This hides a missing source file behind cancellation-ready evidence. Preserve
+native filename identity losslessly on each platform, or reject names that
+cannot be represented, and add a regression/claim test.
 
-### P1 — `--output` can modify an input tree despite the read-only claim
+### P1 — the read-only claim is false for an accepted output path
 
-The CLI accepts an output folder nested inside the source or replacement. In a
-fresh matching one-file case:
+`check` permits `--output` inside the source or replacement tree. The invocation
+exits 0 but changes an input tree by adding the evidence files. This contradicts
+the brief, README, landing copy, and claim `read-only` (“does not change either
+directory tree”). The tagged test only puts output outside both inputs.
 
 ```text
 storage-exit-check check SOURCE REPLACEMENT --output SOURCE/evidence
-exit: 0
-result: content check passed
+OUTPUT_INSIDE_SOURCE_EXIT=0 BEFORE_FILES=1 AFTER_FILES=4
+evidence/audit.json
+evidence/report.html
+evidence/restore-sample.txt
+user-file.txt
 ```
 
-The command added `SOURCE/evidence/audit.json`, `report.html`, and
-`restore-sample.txt`. A before/after tree diff shows all four new entries. This
-directly falsifies declared claim `read-only` (“The check does not change
-either directory tree”) and the same unconditional README promise. The tagged
-test passes only because it chooses an output outside both inputs.
+Evidence sandbox: `/tmp/storage-exit-check-qa-Mf5mQH/inside`.
 
-Evidence sandbox: `/tmp/storage-exit-check-readonly-Cpsbei`.
+Canonicalize the proposed output and reject it when equal to or beneath either
+input root. Cover aliases and the default relative output when run from inside
+an input tree in the `read-only` claim test.
 
-**Required correction:** canonicalize the proposed output, reject output equal
-to or nested within either input tree (and consider input nested inside an
-existing output), then broaden the tagged claim test to cover these aliases.
+### P1 — an incomplete migration can produce a passing restore report
+
+A source with one matching file and one missing file correctly makes `check`
+exit 2 and records `complete: false`, `missing: 1`. Its audit still contains the
+matching file as a sample. Restoring only that file makes `verify-restore` exit
+0 and write **“Restore sample passed”** without carrying forward the failed
+content verdict.
+
+```text
+INCOMPLETE_CHECK_EXIT=2 INCOMPLETE_RESTORE_EXIT=0
+{"complete":false,"missing":1,"sample":1}
+Restore sample passed
+1 passed · 0 failed
+```
+
+Evidence sandbox: `/tmp/storage-exit-check-qa-Mf5mQH/incomplete`.
+
+This can create cancellation-ready-looking evidence for a known incomplete
+replacement. Refuse restore verification for an incomplete audit, or fail and
+label both command and report unmistakably. Add an end-to-end regression test.
 
 ### P1 — material published claims are absent from `claims.json`
 
-The claim registry contains ten entries, but published copy adds material
-promises with no corresponding claim entry and tagged sandbox test. Examples:
+All ten listed claim commands pass, but the registry omits public assertions
+that a visitor can rely on. Examples include:
 
-- README and `/privacy`: “The CLI … makes/sends no network requests.” The
-  `offline-cli` test only supplies invalid proxy variables; it does not observe
-  or block all CLI network activity. The `no-upload` test covers the browser.
-- `/privacy`: “This static site sets no cookies and stores no personal data.”
-  `demo-isolated` checks localStorage, sessionStorage, and IndexedDB, but not
-  cookies or this broader promise.
-- README: stable exit-code meanings, symlinks are never followed, and
-  timestamp-only differences do not fail.
-- `/demo`: the quantitative “10 file copies hashed / 0 content differences”
-  result is not asserted by the claim test.
+- the CLI makes/sends no network requests (`offline-cli` sets bad proxies but
+  does not observe or block all network activity; `no-upload` is browser-only);
+- the website sets no cookies and stores no personal data;
+- symbolic links are recorded as links and never followed;
+- timestamp-only differences are reported and do not fail;
+- extra replacement files do not fail, while empty/no-match sources do;
+- exit codes have the documented stable meanings;
+- the demo's quantitative 10-copy, zero-difference result.
 
-The claims contract says any unlisted claim fails review. Add exact entries and
-observable tests or narrow/remove the copy.
+The claims contract makes every unlisted claim release-blocking. Add one
+observable tagged sandbox test per promise or narrow/remove the copy.
 
 ## Other findings
 
 ### P2 — documented exit code 2 also means invalid command input
 
-The README table says exit 2 means source/replacement missing or changed
-content. `check ... --sample-size 0` is a command-line validation error, yet
-clap also exits **2**. A script cannot rely on the documented meaning.
+The README says code 2 means missing or changed content. Clap also returns 2 for
+invalid `--sample-size 0`, so scripts cannot rely on the documented meaning.
 
-### P2 — multiple mobile touch targets are below 44×44 CSS pixels
+### P2 — several mobile targets are smaller than 44×44 CSS pixels
 
-At 390 px, measured examples include **Start for real** at 88.9×21.7,
-footer **Privacy** at 50.7×21.7, footer **Terms** at 41.2×21.7, and the
-wordmark at 142×35.2. Header Demo and Install are 44 px tall but only 41.6 and
-42.2 px wide. This misses the attached accessibility/design baseline even
-though axe reports no serious or critical violations.
+At 390 px, measured targets include the home wordmark at 142×35, `Demo` and
+`Install` at about 42×44, footer `Privacy` at 51×22, footer `Terms` at 41×22,
+the factory link at 158×22, and demo `Start for real` at 89×22. This misses the
+attached accessibility/design baseline even though axe reports no serious or
+critical violations.
 
-## Claims gate
+### P2 — demo documentation gives the wrong exit destination
 
-`npm ci` completed in the clean candidate checkout. Every exact command from
-`.factory/claims.json` then passed through the documented demo entry point:
+`.factory/demo.md` says **Start for real** returns to the install path. The
+candidate and live link go to `/`; keyboard activation confirmed that route.
+
+## Declared claims
+
+After `npm ci`, every exact command in `.factory/claims.json` passed from the
+candidate checkout through the documented demo entry point.
 
 | Claim | Result |
 | --- | --- |
@@ -118,74 +141,81 @@ though axe reports no serious or critical violations.
 | `offline-cli` | PASS |
 | `mit-free` | PASS |
 | `demo-isolated` | PASS |
-| `read-only` | PASS in its narrow sandbox; broader promise falsified above |
+| `read-only` | PASS narrowly; contradicted by the P1 boundary above |
 | `hash-differences` | PASS |
 | `redacted-report` | PASS |
 | `repeatable-sample` | PASS |
 | `printable-report` | PASS |
 
-The exact command form for each was
-`npm test -- --grep @claim:<id>`. The initial untouched checkout had no
-installed Node dependencies; after the required `npm ci`, all ten commands
-exited 0.
+Each exact command also reran Rust tests, typecheck, the site build, and its
+selected Playwright test. No listed command failed after dependency install.
 
 ## Build, package, and CLI matrix
 
-- `npm test`: PASS — 6 Rust tests and 15 Playwright tests.
-- `npm run build`: PASS — release CLI and `dist/site/` produced.
-- `npm run typecheck`: PASS within the test suite.
+- `npm ci`: PASS; 23 packages installed and 0 npm vulnerabilities reported.
+- `npm test`: PASS; 6 Rust tests and 15 Playwright tests.
+- TypeScript check: PASS through `npm test`.
+- `npm run build`: PASS; optimized CLI and `dist/site/` produced.
 - `cargo fmt --all -- --check`: PASS.
 - `cargo clippy --all-targets -- -D warnings`: PASS.
-- `npm run pack:cli`: PASS — 20 files, 56.5 KiB unpacked crate.
-- Packed crate installed into a fresh Cargo root; `--help` and bundled `demo`
-  passed and produced both reports plus a 3-of-3 restore result.
-- Independent normal two-file check: exit 0; two-file restore: exit 0.
-- Changed restore: exit 3 with one passed and one failed sample.
-- Missing + changed + extra comparison: exit 2 with counts 1/1/1.
-- Empty source: exit 2. Same input tree: exit 1 with recovery text. Missing
-  input path: exit 1 with recovery text. Timestamp-only difference: exit 0 and
-  count 1.
+- `npm run pack:cli`: PASS; 20 files, 56.5 KiB unpacked/16.6 KiB compressed.
+- The packed crate installed into a fresh Cargo root. `--version`, `--help`,
+  and `demo` passed; demo produced four evidence files and a 3-of-3 restore.
+- Independent matching, missing/changed/extra, empty-file, symlink,
+  timestamp-only, missing-path, same-root, nonempty-output, sample-size bound,
+  JSON, wrong restore, and missing restore cases were exercised.
+- Normal results and documented exit codes behaved as expected apart from the
+  findings above. Wrong and missing restores exited 3.
 
-Matrix sandbox: `/tmp/storage-exit-check-matrix-LiZK45`.
+## Live deployment, privacy, and policies
 
-## Live identity, privacy, response policy, and PWA checks
-
-- Candidate and live SHA-256 matched for `index.html`, hashed JS, hashed CSS,
-  versioned hero WebP, `sw.js`, and `404.html`.
-- `/`, `/demo`, `/install`, `/privacy`, and `/terms` return 200. An unknown
-  path returns HTTP 404 with the styled page. All linked HTTP pages returned
-  200; robots and sitemap list the public routes.
-- Hashed JS/CSS and the versioned hero return
-  `Cache-Control: public, max-age=31536000, immutable`; HTML and `sw.js` are
-  immediately revalidated.
+- `index.html`, hashed JS/CSS, both versioned WebP images, `sw.js`, and
+  `404.html` match local production output by SHA-256.
+- `/`, `/demo`, `/install`, `/privacy`, and `/terms` return 200. An unknown path
+  returns the styled document with HTTP 404. All linked HTTP pages return 200.
+- Hashed JS, CSS, and images return
+  `Cache-Control: public, max-age=31536000, immutable`; HTML and service-worker
+  responses are revalidated.
 - Live responses include HSTS, `nosniff`, strict-origin referrer policy,
-  permissions policy, and a restrictive same-origin CSP.
-- Cold landing and demo flows made only same-origin requests. No third-party
-  scripts, fonts, trackers, cookies, sign-in, payment, or server API was found.
-  Rate-limit and Entra checks are not applicable because there is no endpoint
-  or authentication flow.
-- The service worker reached `activated`, an explicit update check left no
-  waiting worker, and `/demo` reloaded offline with status 200 and correct
-  content.
+  permissions policy, and a restrictive same-origin CSP. No cookies were set.
+- A complete demo flow made only same-origin document, JS, CSS, and image
+  requests. Browser storage stayed empty. No telemetry, authentication,
+  billing, AI, unlock, or server API endpoint was found. Rate limiting, Entra
+  authority, backend concurrency, and persistence checks are not applicable.
+- The active service worker was `sw.js`, cache `storage-exit-check-v2`. An
+  explicit update check left no waiting worker; `/demo` reloaded offline with
+  status 200 and the correct heading.
 
 ## Accessibility and performance
 
-- Desktop and 390×844 mobile: no horizontal overflow or unexpected page/
-  console errors on normal routes. First Tab reaches the skip link; Enter moves
-  focus to `main`. Keyboard activation of Reset demo announces “Demo reset.”
-- Live axe scans across all five app routes found zero serious/critical issues;
-  the styled 404 also had zero serious/critical findings.
-- Reduced-motion emulation matched, changed terminal animation duration to
-  `0.01ms`, and disabled smooth scrolling.
-- `verify-url.sh`: PASS — title, `lang=en`, one h1, main, image alt text,
-  labelled buttons, and no load errors; measured 1,681 ms in that run.
-- Lighthouse 12.8.2 live mobile: Performance **98**, Accessibility **100**,
-  Best Practices **100**, SEO **100**; FCP **1.0 s**, LCP **1.3 s**, TBT
-  **160 ms**, CLS **0**, total transfer **91 KiB**.
-- Built gzip JS is 4.1 KiB, CSS 3.1 KiB, and hero WebP 83.7 KiB. Budgets pass.
+- Desktop and 390×844 live routes have one h1, one main landmark, `lang=en`,
+  route-specific titles, no horizontal overflow, and no unexpected errors.
+- Playwright axe scans across all five routes at both sizes found zero serious
+  or critical violations. The styled 404 also had none.
+- Keyboard checks passed for the skip link, demo reset, SPA navigation, browser
+  back, heading focus, and live-region update. The focus ring is 3 px and its
+  measured contrast against paper is 4.61:1.
+- Reduced motion produces 0.01 ms animation/transition duration, instant
+  scrolling, and a visible hero. A 200% text-size smoke test had no page
+  overflow; the undersized-target finding remains.
+- `verify-url.sh`: PASS; 665 ms observed load and no console errors.
+- Lighthouse 12.8.2 live mobile: Performance 96, Accessibility 100, Best
+  Practices 100, SEO 100; FCP 0.8 s, LCP 1.3 s, CLS 0, TBT 230 ms.
+- Initial transfer was 92,796 bytes: JS 4,105, CSS 3,191, image 83,816. Built
+  gzip JS is 4.09 KiB and CSS is 3.07 KiB. All stated budgets pass.
+
+## Evidence locations
+
+- Non-UTF-8 collision: `/tmp/storage-exit-check-nonutf8-confirm-dbCDr5`
+- CLI matrix and blockers: `/tmp/storage-exit-check-qa-Mf5mQH`
+- Packed consumer: `/tmp/storage-exit-check-consumer-mFOjjV`
+- Cold desktop screenshot: `/tmp/storage-exit-check-first-read.png`
+- Mobile screenshot: `/tmp/storage-exit-live-mobile.png`
+- URL verifier: `/tmp/storage-exit-verify-url-woC6pI/verify.json`
+- Lighthouse: `/tmp/storage-exit-check-lighthouse.json`
 
 ## Final decision
 
-**FAIL.** Do not release this candidate as cancellation evidence. Fix the two
-CLI correctness/safety defects and close the claim-registry gaps, then rerun
-all boundary, package-consumer, and live-deployment checks.
+**FAIL.** Do not release this candidate as cancellation evidence. Fix the three
+CLI correctness/safety paths and close the claim-registry gaps, then rerun the
+full claim, package-consumer, boundary, and live-deployment matrix.
