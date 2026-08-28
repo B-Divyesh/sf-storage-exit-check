@@ -1,0 +1,12 @@
+{
+  "slug": "storage-exit-check",
+  "title": "Storage Exit Check",
+  "summary": "Check a storage move and test a restore sample before cancelling cloud storage.",
+  "territory": "utilities",
+  "user": "Privacy-conscious individuals moving files from cloud storage to a NAS or local disks who need evidence their replacement is complete and recoverable before cancelling a subscription.",
+  "smallest_useful_product": "A local CLI that snapshots two directory trees, explains count, size, and hash differences, selects a reproducible restore sample, and emits a printable cancellation-ready report.",
+  "artifact_class": "cli",
+  "monetization": "free",
+  "constraints": "Read-only by default; support report redaction; never imply a sample proves disaster recovery; document timestamp and symlink differences.",
+  "state": "BUILT"
+}

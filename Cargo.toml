@@ -7,7 +7,16 @@ license = "MIT"
 repository = "https://github.com/B-Divyesh/sf-storage-exit-check"
 keywords = ["backup", "migration", "storage", "cli"]
 categories = ["command-line-utilities", "filesystem"]
-exclude = ["site/", ".factory/", "tests/", "dist/"]
+exclude = [
+  "site/",
+  ".factory/",
+  "tests/",
+  "dist/",
+  "AGENTS.md",
+  "package.json",
+  "package-lock.json",
+  "playwright.config.ts",
+]
 
 [[bin]]
 name = "storage-exit-check"

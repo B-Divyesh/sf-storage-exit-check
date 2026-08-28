@@ -1,0 +1,72 @@
+[
+  {
+    "id": "demo-complete",
+    "claim": "The demo completes a content check and verifies three restored sample files.",
+    "where": "demo page, README",
+    "test": "npm test -- --grep @claim:demo-complete",
+    "sandbox": "fresh temp directory; run the bundled CLI demo; assert both reports and three passed samples"
+  },
+  {
+    "id": "no-upload",
+    "claim": "No files are uploaded.",
+    "where": "landing facts, privacy page, README",
+    "test": "npm test -- --grep @claim:no-upload",
+    "sandbox": "fresh browser context on /demo; fail any request outside the product origin"
+  },
+  {
+    "id": "offline-cli",
+    "claim": "The CLI works without internet access.",
+    "where": "landing facts, README",
+    "test": "npm test -- --grep @claim:offline-cli",
+    "sandbox": "fresh temp directory; run the bundled demo with invalid HTTP proxy endpoints; assert the restore passes"
+  },
+  {
+    "id": "mit-free",
+    "claim": "The product is free under the MIT License.",
+    "where": "landing facts, README",
+    "test": "npm test -- --grep @claim:mit-free",
+    "sandbox": "fresh checkout; assert package metadata and LICENSE both name MIT"
+  },
+  {
+    "id": "demo-isolated",
+    "claim": "The browser demo stores no demo records.",
+    "where": "demo banner, README",
+    "test": "npm test -- --grep @claim:demo-isolated",
+    "sandbox": "fresh browser context; reset demo; assert localStorage, sessionStorage, and IndexedDB contain no demo records"
+  },
+  {
+    "id": "read-only",
+    "claim": "The check does not change either directory tree.",
+    "where": "landing boundaries, README",
+    "test": "npm test -- --grep @claim:read-only",
+    "sandbox": "fresh temp trees; record contents and metadata; run check; assert both trees are unchanged"
+  },
+  {
+    "id": "hash-differences",
+    "claim": "The check reports content differences using SHA-256.",
+    "where": "landing method, README",
+    "test": "npm test -- --grep @claim:hash-differences",
+    "sandbox": "fresh temp trees with one changed file; assert exit code 2 and one changed result"
+  },
+  {
+    "id": "redacted-report",
+    "claim": "Redaction hides filenames and directory paths in the evidence packet.",
+    "where": "install guide, privacy page, README",
+    "test": "npm test -- --grep @claim:redacted-report",
+    "sandbox": "fresh temp trees with a private name; run --redact; inspect every evidence file for that name and root path"
+  },
+  {
+    "id": "repeatable-sample",
+    "claim": "The same matching manifest produces the same restore sample.",
+    "where": "landing preview, README",
+    "test": "npm test -- --grep @claim:repeatable-sample",
+    "sandbox": "fresh temp trees; run two checks; assert equal seeds and sampled SHA-256 values"
+  },
+  {
+    "id": "printable-report",
+    "claim": "The CLI writes a printable HTML evidence report.",
+    "where": "landing preview, demo page, README",
+    "test": "npm test -- --grep @claim:printable-report",
+    "sandbox": "bundled demo in a fresh temp directory; assert report markup, print CSS, verdict, and recovery caveat"
+  }
+]

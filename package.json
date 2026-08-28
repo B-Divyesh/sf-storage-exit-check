@@ -1,0 +1,20 @@
+{
+  "name": "storage-exit-check-site",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite site",
+    "build:cli": "cargo build --release",
+    "build:site": "vite build site --outDir ../dist/site --emptyOutDir",
+    "build": "npm run build:cli && npm run build:site",
+    "preview": "vite preview --outDir dist/site",
+    "test": "cargo test && npm run build:site && playwright test",
+    "pack:cli": "cargo package --allow-dirty"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
+    "@playwright/test": "1.58.2",
+    "vite": "^6.4.3"
+  }
+}

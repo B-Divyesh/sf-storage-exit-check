@@ -257,14 +257,11 @@ fn snapshot(root: &Path) -> io::Result<BTreeMap<String, Entry>> {
         .sort_by_file_name()
         .into_iter()
     {
-        let item = item.map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
+        let item = item.map_err(|e| io::Error::other(e.to_string()))?;
         if item.path() == root || item.file_type().is_dir() {
             continue;
         }
-        let relative = item
-            .path()
-            .strip_prefix(root)
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+        let relative = item.path().strip_prefix(root).map_err(io::Error::other)?;
         let key = path_key(relative)?;
         let metadata = fs::symlink_metadata(item.path())?;
         let modified_ns = metadata
@@ -334,7 +331,7 @@ fn token_for(path: &str) -> String {
 fn hex_prefix(bytes: &[u8], count: usize) -> String {
     bytes
         .iter()
-        .take((count + 1) / 2)
+        .take(count.div_ceil(2))
         .map(|b| format!("{b:02x}"))
         .collect::<String>()[..count]
         .to_string()
