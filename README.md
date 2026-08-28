@@ -54,6 +54,9 @@ The new output directory contains:
 - `report.html`: printable migration evidence;
 - `restore-sample.txt`: the files to recover from the replacement backup.
 
+The output must be outside both input trees. The command resolves symbolic-link
+aliases and stops before writing if the output is inside either tree.
+
 Restore the selected files into a separate empty directory. Do not copy them
 from the source tree. Then verify them:
 
@@ -64,7 +67,8 @@ storage-exit-check verify-restore \
 ```
 
 The command writes `restore-report.html` beside the audit. Keep both HTML
-reports with your cancellation records.
+reports with your cancellation records. Restore verification refuses an audit
+whose content check failed.
 
 ### Redact filenames
 
@@ -92,7 +96,8 @@ Exit codes are stable:
 | 0 | Content check passed, or every restore sample passed. |
 | 1 | A path, permission, or evidence file could not be read. |
 | 2 | The source and replacement have missing or changed content. |
-| 3 | A restore sample is missing, changed, or empty. |
+| 3 | A restore sample failed, or its content audit was incomplete. |
+| 64 | The command usage or an option value is invalid. |
 
 Extra replacement files are reported but do not fail a check. An empty source,
 or a tree without matching regular files, does fail.
@@ -100,6 +105,7 @@ or a tree without matching regular files, does fail.
 ## Filesystem notes
 
 - Symbolic links are recorded as links and never followed.
+- A filename that is not valid UTF-8 stops the check instead of being merged or rewritten.
 - Timestamp-only differences are reported but do not fail content checks.
 - Filesystems round timestamps differently, so SHA-256 decides file equality.
 - Hashing reads every regular file and can take time on large trees.

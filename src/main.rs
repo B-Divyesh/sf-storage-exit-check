@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{error::ErrorKind, Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, HashMap};
@@ -172,7 +172,17 @@ struct RestoreResult {
 }
 
 fn main() -> ExitCode {
-    let cli = Cli::parse();
+    let cli = match Cli::try_parse() {
+        Ok(cli) => cli,
+        Err(error) => {
+            let code = match error.kind() {
+                ErrorKind::DisplayHelp | ErrorKind::DisplayVersion => 0,
+                _ => 64,
+            };
+            let _ = error.print();
+            return ExitCode::from(code);
+        }
+    };
     match run(cli) {
         Ok(code) => ExitCode::from(code),
         Err(error) => {
@@ -192,6 +202,7 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             sample_size,
             redact,
         } => {
+            let output = validate_output_location(&source, &replacement, &output)?;
             let audit = create_audit(&source, &replacement, sample_size as usize, redact)?;
             write_evidence(&audit, &output)?;
             let result = CheckResult {
@@ -232,10 +243,15 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             if cli.json {
                 println!("{}", serde_json::to_string_pretty(&result)?);
             } else {
-                println!(
-                    "Restore sample: {} passed, {} failed",
-                    result.passed, result.failed
-                );
+                if evidence.complete {
+                    println!(
+                        "Restore sample: {} passed, {} failed",
+                        result.passed, result.failed
+                    );
+                } else {
+                    println!("Restore verification blocked: the content check is incomplete.");
+                    println!("Fix the missing or changed items and run check again.");
+                }
                 println!("Report: {}", report_path.display());
                 println!("A sample test does not prove full disaster recovery.");
             }
@@ -275,7 +291,68 @@ fn validate_root(path: &Path, label: &str) -> io::Result<PathBuf> {
             format!("{label} '{}' is not a directory", path.display()),
         ));
     }
-    fs::canonicalize(path)
+    let canonical = fs::canonicalize(path)?;
+    if canonical.to_str().is_none() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("{label} path is not valid UTF-8; rename it and run the check again"),
+        ));
+    }
+    Ok(canonical)
+}
+
+fn resolve_for_creation(path: &Path) -> io::Result<PathBuf> {
+    let absolute = if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        std::env::current_dir()?.join(path)
+    };
+    let mut normalized = PathBuf::new();
+    for component in absolute.components() {
+        match component {
+            Component::Prefix(prefix) => normalized.push(prefix.as_os_str()),
+            Component::RootDir => normalized.push(Path::new(std::path::MAIN_SEPARATOR_STR)),
+            Component::CurDir => {}
+            Component::ParentDir => {
+                normalized.pop();
+            }
+            Component::Normal(part) => normalized.push(part),
+        }
+    }
+
+    let mut existing = normalized.as_path();
+    let mut missing = Vec::new();
+    while !existing.exists() {
+        let name = existing.file_name().ok_or_else(|| {
+            io::Error::new(io::ErrorKind::InvalidInput, "output path is not valid")
+        })?;
+        missing.push(name.to_os_string());
+        existing = existing.parent().ok_or_else(|| {
+            io::Error::new(io::ErrorKind::InvalidInput, "output path is not valid")
+        })?;
+    }
+    let mut resolved = fs::canonicalize(existing)?;
+    for component in missing.into_iter().rev() {
+        resolved.push(component);
+    }
+    Ok(resolved)
+}
+
+fn validate_output_location(
+    source: &Path,
+    replacement: &Path,
+    output: &Path,
+) -> io::Result<PathBuf> {
+    let source_root = validate_root(source, "source")?;
+    let replacement_root = validate_root(replacement, "replacement")?;
+    let output = resolve_for_creation(output)?;
+    if output.starts_with(&source_root) || output.starts_with(&replacement_root) {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "output must be outside the source and replacement directories",
+        ));
+    }
+    Ok(output)
 }
 
 fn snapshot(root: &Path) -> io::Result<BTreeMap<String, Entry>> {
@@ -303,7 +380,17 @@ fn snapshot(root: &Path) -> io::Result<BTreeMap<String, Entry>> {
                 size: 0,
                 modified_ns,
                 hash: None,
-                link_target: Some(fs::read_link(item.path())?.to_string_lossy().into_owned()),
+                link_target: Some(
+                    fs::read_link(item.path())?
+                        .to_str()
+                        .ok_or_else(|| {
+                            io::Error::new(
+                                io::ErrorKind::InvalidData,
+                                "a symbolic-link target is not valid UTF-8; rename it and run the check again",
+                            )
+                        })?
+                        .to_owned(),
+                ),
             }
         } else if metadata.is_file() {
             Entry {
@@ -325,7 +412,16 @@ fn path_key(path: &Path) -> io::Result<String> {
     let mut parts = Vec::new();
     for component in path.components() {
         match component {
-            Component::Normal(part) => parts.push(part.to_string_lossy().into_owned()),
+            Component::Normal(part) => parts.push(
+                part.to_str()
+                    .ok_or_else(|| {
+                        io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            "a filename is not valid UTF-8; rename it and run the check again",
+                        )
+                    })?
+                    .to_owned(),
+            ),
             _ => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -624,6 +720,19 @@ fn verify_restore(
     audit: &Audit,
     restored: &Path,
 ) -> Result<RestoreResult, Box<dyn std::error::Error>> {
+    if !audit.complete {
+        return Ok(RestoreResult {
+            checked_unix_seconds: now_seconds(),
+            passed: 0,
+            failed: 1,
+            items: vec![RestoreItem {
+                label: "AUDIT".into(),
+                path: None,
+                status: "failed".into(),
+                detail: "Restore verification was not run because the content check is incomplete. Fix the missing or changed items and run check again.".into(),
+            }],
+        });
+    }
     let restored_root = validate_root(restored, "restored sample")?;
     let mut by_hash = if audit.redacted {
         let manifest = snapshot(&restored_root)?;
@@ -786,7 +895,7 @@ fn render_audit_report(audit: &Audit) -> String {
 }
 
 fn render_restore_report(audit: &Audit, result: &RestoreResult) -> String {
-    let passed = result.failed == 0 && result.passed > 0;
+    let passed = audit.complete && result.failed == 0 && result.passed > 0;
     let rows = result
         .items
         .iter()
@@ -808,7 +917,9 @@ fn render_restore_report(audit: &Audit, result: &RestoreResult) -> String {
     let body = format!(
         r#"<p class="kicker">Storage Exit Check · restore evidence</p><h1>Sampled restore check</h1><section class="verdict"><strong class="{}">{}</strong><br>{} passed · {} failed</section><p>Based on audit seed <code>{}</code>.</p><table><thead><tr><th>Sample</th><th>Path</th><th>Result</th><th>Evidence</th></tr></thead><tbody>{}</tbody></table><h2>What this result means</h2><p class="note">A sampled restore reduces uncertainty. It does not prove full disaster recovery.</p><p>Keep this report with the original audit. Review off-site copies, credentials, encryption keys, and retention before cancelling.</p>"#,
         if passed { "pass" } else { "fail" },
-        if passed {
+        if !audit.complete {
+            "Restore verification blocked"
+        } else if passed {
             "Restore sample passed"
         } else {
             "Restore sample failed"
@@ -970,6 +1081,73 @@ mod tests {
         let audit = create_audit(&source, &replacement, 1, false).unwrap();
         let result = verify_restore(&audit, &restored).unwrap();
         assert_eq!(result.failed, 1);
+    }
+
+    #[test]
+    fn restore_is_blocked_when_the_content_audit_is_incomplete() {
+        let temp = tempdir().unwrap();
+        let source = temp.path().join("source");
+        let replacement = temp.path().join("replacement");
+        let restored = temp.path().join("restored");
+        write(&source.join("same.txt"), "same");
+        write(&replacement.join("same.txt"), "same");
+        write(&source.join("missing.txt"), "missing");
+        write(&restored.join("same.txt"), "same");
+        let audit = create_audit(&source, &replacement, 1, false).unwrap();
+        let result = verify_restore(&audit, &restored).unwrap();
+        assert_eq!(result.passed, 0);
+        assert_eq!(result.failed, 1);
+        assert!(result.items[0]
+            .detail
+            .contains("content check is incomplete"));
+        assert!(render_restore_report(&audit, &result).contains("Restore verification blocked"));
+    }
+
+    #[test]
+    fn output_inside_an_input_or_its_alias_is_rejected() {
+        let temp = tempdir().unwrap();
+        let source = temp.path().join("source");
+        let replacement = temp.path().join("replacement");
+        write(&source.join("same.txt"), "same");
+        write(&replacement.join("same.txt"), "same");
+        assert!(
+            validate_output_location(&source, &replacement, &source.join("evidence"))
+                .unwrap_err()
+                .to_string()
+                .contains("output must be outside")
+        );
+
+        #[cfg(unix)]
+        {
+            let alias = temp.path().join("source-alias");
+            std::os::unix::fs::symlink(&source, &alias).unwrap();
+            assert!(
+                validate_output_location(&source, &replacement, &alias.join("evidence"))
+                    .unwrap_err()
+                    .to_string()
+                    .contains("output must be outside")
+            );
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn rejects_non_utf8_filenames_without_collapsing_them() {
+        use std::ffi::OsString;
+        use std::os::unix::ffi::OsStringExt;
+
+        let temp = tempdir().unwrap();
+        let source = temp.path().join("source");
+        let replacement = temp.path().join("replacement");
+        fs::create_dir_all(&source).unwrap();
+        fs::create_dir_all(&replacement).unwrap();
+        fs::write(source.join(OsString::from_vec(vec![0x80])), "source-only").unwrap();
+        fs::write(source.join(OsString::from_vec(vec![0x81])), "shared").unwrap();
+        fs::write(replacement.join(OsString::from_vec(vec![0x81])), "shared").unwrap();
+        let error = create_audit(&source, &replacement, 1, false)
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("filename is not valid UTF-8"));
     }
 
     #[test]

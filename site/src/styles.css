@@ -28,6 +28,7 @@ button, .button { min-height: 44px; }
 
 .site-header { min-height: 76px; max-width: 1240px; margin: 0 auto; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid rgba(23,37,29,.55); }
 .wordmark { display: inline-flex; gap: 10px; align-items: center; font-family: Georgia, Cambria, serif; font-weight: 700; text-decoration: none; }
+.wordmark, .site-header nav a, .site-footer nav a, .demo-actions a, .text-link { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; }
 .wordmark svg { width: 32px; height: 32px; fill: none; stroke: currentColor; stroke-width: 1.7; }
 .site-header nav, .site-footer nav { display: flex; gap: 24px; align-items: center; }
 .site-header nav a { min-height: 44px; display: inline-flex; align-items: center; }
@@ -96,6 +97,7 @@ p { max-width: 68ch; }
 .prose h2 { margin-top: 56px; font-size: 2rem; }
 .prose pre { padding: 24px; overflow-x: auto; background: var(--ink); color: var(--white); border-left: 6px solid var(--ochre); }
 .prose code { font-family: ui-monospace, monospace; font-size: 14px; }
+.prose a { min-height: 44px; display: inline-flex; align-items: center; }
 .demo-page { width: min(1060px, calc(100% - 48px)); }
 .demo-page .terminal { margin-block: 48px; }
 .demo-key { border-top: 1px solid var(--ink); padding-top: 48px; }
@@ -142,5 +144,6 @@ p { max-width: 68ch; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .hero-plate img, .terminal.replay pre { animation: none !important; }
   .hero-plate img { opacity: 1; clip-path: none; }
 }

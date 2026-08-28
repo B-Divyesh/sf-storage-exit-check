@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, statSync, symlinkSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -25,6 +25,22 @@ function treeSnapshot(root: string) {
   };
   visit(root);
   return result;
+}
+
+function guardedDemo(root: string) {
+  const guard = join(temp(), 'network-guard.so');
+  const compile = spawnSync('cc', ['-shared', '-fPIC', 'tests/network_guard.c', '-o', guard], { encoding: 'utf8' });
+  expect(compile.status, compile.stderr).toBe(0);
+  const log = join(temp(), 'network-attempts.log');
+  const result = spawnSync(binary, ['demo', '--output', root], {
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      LD_PRELOAD: guard,
+      STORAGE_EXIT_CHECK_NETWORK_LOG: log,
+    },
+  });
+  return { result, attempts: existsSync(log) ? readFileSync(log, 'utf8') : '' };
 }
 
 test('landing page has the required structure at 390px', async ({ page }) => {
@@ -61,12 +77,54 @@ test('demo remains accessible and keyboard-operable at 390px', async ({ page }) 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
 
+test('@regression:keyboard-motion route focus, reduced motion, and 200% text remain usable', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  const reduced = await page.locator('.hero-plate img').evaluate((image) => {
+    const style = getComputedStyle(image);
+    return { duration: style.animationDuration, clipPath: style.clipPath, opacity: style.opacity };
+  });
+  expect(reduced).toMatchObject({ clipPath: 'none', opacity: '1' });
+  expect(Number.parseFloat(reduced.duration)).toBeLessThanOrEqual(0.001);
+
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/demo$/);
+  await expect(page.locator('h1')).toBeFocused();
+  await page.goBack();
+  await expect(page.locator('h1')).toBeFocused();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  await expect(page.getByRole('link', { name: 'Try it with sample data' })).toBeVisible();
+});
+
+test('@regression:mobile-touch-targets every mobile control is at least 44px square', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const route of ['/', '/demo', '/install', '/privacy', '/terms']) {
+    await page.goto(route);
+    for (const control of await page.locator('a, button').all()) {
+      if (!(await control.isVisible())) continue;
+      const box = await control.boundingBox();
+      expect(box, `${route}: ${await control.textContent()}`).not.toBeNull();
+      expect(box!.width, `${route}: ${await control.textContent()} width`).toBeGreaterThanOrEqual(44);
+      expect(box!.height, `${route}: ${await control.textContent()} height`).toBeGreaterThanOrEqual(44);
+    }
+  }
+});
+
 test('@claim:demo-complete demo verifies a three-file restore sample', () => {
   const root = join(temp(), 'demo');
   const output = execFileSync(binary, ['demo', '--output', root], { encoding: 'utf8' });
   expect(output).toContain('Content check: passed');
   expect(output).toContain('Restore sample: 3 of 3 passed');
   expect(readFileSync(join(root, 'evidence', 'audit.json'), 'utf8')).toContain('"complete": true');
+  const audit = JSON.parse(readFileSync(join(root, 'evidence', 'audit.json'), 'utf8'));
+  expect(audit.summary).toMatchObject({ source_entries: 5, replacement_entries: 5, missing: 0, changed: 0 });
+  expect(audit.restore_sample).toHaveLength(3);
   expect(readFileSync(join(root, 'evidence', 'restore-report.html'), 'utf8')).toContain('Restore sample passed');
 });
 
@@ -104,9 +162,31 @@ test('@regression:static-hosting preserves app deep links, asset caching, and HT
   for (const route of ['/sw.js', '/index.html', '/404.html']) {
     expect(config.routes).toContainEqual({ route, headers: { 'Cache-Control': 'public, max-age=0, must-revalidate' } });
   }
+  expect(readFileSync('site/public/sw.js', 'utf8')).toContain("storage-exit-check-v3");
 });
 
-test('@claim:no-upload demo makes no third-party requests', async ({ page }) => {
+test('@regression:offline-update production demo reloads offline with the current cache', async ({ page, context }) => {
+  await page.goto('/demo');
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.reload();
+  expect(await page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Inspect a complete sample check');
+  await context.setOffline(false);
+  const state = await page.evaluate(async () => {
+    const registration = await navigator.serviceWorker.ready;
+    await registration.update();
+    return {
+      waiting: Boolean(registration.waiting),
+      caches: await caches.keys(),
+    };
+  });
+  expect(state.waiting).toBe(false);
+  expect(state.caches).toEqual(['storage-exit-check-v3']);
+});
+
+test('@claim:no-upload browser and CLI demo make no network requests', async ({ page }) => {
   const outside: string[] = [];
   page.on('request', (request) => {
     if (new URL(request.url()).origin !== 'http://127.0.0.1:4173') outside.push(request.url());
@@ -114,6 +194,10 @@ test('@claim:no-upload demo makes no third-party requests', async ({ page }) => 
   await page.goto('/demo');
   await page.getByRole('button', { name: 'Reset demo' }).click();
   expect(outside).toEqual([]);
+  const root = join(temp(), 'guarded-demo');
+  const { result, attempts } = guardedDemo(root);
+  expect(result.status, result.stderr).toBe(0);
+  expect(attempts).toBe('');
 });
 
 test('@claim:offline-cli bundled CLI demo needs no internet', () => {
@@ -131,7 +215,12 @@ test('@claim:mit-free package and license identify MIT', () => {
   expect(readFileSync('LICENSE', 'utf8')).toContain('MIT License');
 });
 
-test('@claim:demo-isolated browser demo stores no demo records', async ({ page }) => {
+test('@claim:demo-isolated website sets no cookies and stores no personal or demo records', async ({ page, context }) => {
+  const setCookieResponses: string[] = [];
+  page.on('response', async (response) => {
+    if ((await response.allHeaders())['set-cookie']) setCookieResponses.push(response.url());
+  });
+  for (const route of ['/', '/demo', '/install', '/privacy', '/terms']) await page.goto(route);
   await page.goto('/demo');
   await page.getByRole('button', { name: 'Reset demo' }).click();
   const stored = await page.evaluate(async () => ({
@@ -140,6 +229,8 @@ test('@claim:demo-isolated browser demo stores no demo records', async ({ page }
     databases: 'databases' in indexedDB ? (await indexedDB.databases()).map((item) => item.name) : [],
   }));
   expect(stored).toEqual({ local: [], session: [], databases: [] });
+  expect(await context.cookies()).toEqual([]);
+  expect(setCookieResponses).toEqual([]);
 });
 
 test('@claim:read-only check leaves both input trees unchanged', () => {
@@ -151,6 +242,22 @@ test('@claim:read-only check leaves both input trees unchanged', () => {
   const beforeSource = treeSnapshot(source);
   const beforeReplacement = treeSnapshot(replacement);
   execFileSync(binary, ['check', source, replacement, '--output', join(root, 'report')]);
+  expect(treeSnapshot(source)).toEqual(beforeSource);
+  expect(treeSnapshot(replacement)).toEqual(beforeReplacement);
+
+  for (const output of [source, join(source, 'evidence'), join(replacement, 'evidence')]) {
+    const rejected = spawnSync(binary, ['check', source, replacement, '--output', output], { encoding: 'utf8' });
+    expect(rejected.status).toBe(1);
+    expect(rejected.stderr).toContain('output must be outside');
+  }
+  const alias = join(root, 'source-alias');
+  symlinkSync(source, alias, 'dir');
+  const aliased = spawnSync(binary, ['check', source, replacement, '--output', join(alias, 'evidence')], { encoding: 'utf8' });
+  expect(aliased.status).toBe(1);
+  expect(aliased.stderr).toContain('output must be outside');
+  const defaultInside = spawnSync(binary, ['check', '.', replacement], { cwd: source, encoding: 'utf8' });
+  expect(defaultInside.status).toBe(1);
+  expect(defaultInside.stderr).toContain('output must be outside');
   expect(treeSnapshot(source)).toEqual(beforeSource);
   expect(treeSnapshot(replacement)).toEqual(beforeReplacement);
 });
@@ -174,6 +281,12 @@ test('@claim:redacted-report evidence omits private names and roots', () => {
   const privateName = 'casey-private-passport.txt';
   write(join(source, 'Family', privateName), 'private');
   write(join(replacement, 'Family', privateName), 'private');
+  const plainReport = join(root, 'plain-evidence');
+  execFileSync(binary, ['check', source, replacement, '--output', plainReport]);
+  const plainAudit = readFileSync(join(plainReport, 'audit.json'), 'utf8');
+  expect(plainAudit).toContain(privateName);
+  expect(plainAudit).toContain(source);
+  expect(plainAudit).toMatch(/[a-f0-9]{64}/);
   const report = join(root, 'evidence');
   execFileSync(binary, ['check', source, replacement, '--redact', '--output', report]);
   for (const name of readdirSync(report)) {
@@ -207,4 +320,131 @@ test('@claim:printable-report demo writes printable evidence with a caveat', () 
   expect(report).toContain('@media print');
   expect(report).toContain('Content check passed');
   expect(report).toContain('does not prove full disaster recovery');
+});
+
+test('@claim:path-identity non-UTF-8 filenames are rejected instead of merged', () => {
+  test.skip(process.platform !== 'linux', 'raw non-UTF-8 filenames are a Unix behavior');
+  const root = temp();
+  const source = join(root, 'source');
+  const replacement = join(root, 'replacement');
+  mkdirSync(source);
+  mkdirSync(replacement);
+  writeFileSync(Buffer.concat([Buffer.from(`${source}/`), Buffer.from([0x80])]), 'source-only');
+  writeFileSync(Buffer.concat([Buffer.from(`${source}/`), Buffer.from([0x81])]), 'shared');
+  writeFileSync(Buffer.concat([Buffer.from(`${replacement}/`), Buffer.from([0x81])]), 'shared');
+  const result = spawnSync(binary, ['check', source, replacement, '--output', join(root, 'evidence')], { encoding: 'utf8' });
+  expect(result.status).toBe(1);
+  expect(result.stderr).toContain('filename is not valid UTF-8');
+  expect(existsSync(join(root, 'evidence', 'audit.json'))).toBe(false);
+});
+
+test('@claim:incomplete-audit restore verification refuses a failed content check', () => {
+  const root = temp();
+  const source = join(root, 'source');
+  const replacement = join(root, 'replacement');
+  const restored = join(root, 'restored');
+  write(join(source, 'match.txt'), 'same');
+  write(join(source, 'missing.txt'), 'missing');
+  write(join(replacement, 'match.txt'), 'same');
+  write(join(restored, 'match.txt'), 'same');
+  const evidence = join(root, 'evidence');
+  expect(spawnSync(binary, ['check', source, replacement, '--output', evidence]).status).toBe(2);
+  const result = spawnSync(binary, ['verify-restore', join(evidence, 'audit.json'), restored], { encoding: 'utf8' });
+  expect(result.status).toBe(3);
+  expect(result.stdout).toContain('Restore verification blocked');
+  const report = readFileSync(join(evidence, 'restore-report.html'), 'utf8');
+  expect(report).toContain('Restore verification blocked');
+  expect(report).toContain('content check is incomplete');
+  expect(report).not.toContain('Restore sample passed');
+});
+
+test('@claim:symlink-policy links are recorded as links and never followed', () => {
+  test.skip(process.platform === 'win32', 'symlink creation needs privileges on Windows');
+  const root = temp();
+  const source = join(root, 'source');
+  const replacement = join(root, 'replacement');
+  write(join(root, 'outside', 'private.txt'), 'must not be traversed');
+  write(join(source, 'same.txt'), 'same');
+  write(join(replacement, 'same.txt'), 'same');
+  symlinkSync('../outside', join(source, 'linked'), 'dir');
+  write(join(replacement, 'linked'), 'a regular file, not a link');
+  const evidence = join(root, 'evidence');
+  const result = spawnSync(binary, ['--json', 'check', source, replacement, '--output', evidence], { encoding: 'utf8' });
+  expect(result.status).toBe(2);
+  const audit = JSON.parse(readFileSync(join(evidence, 'audit.json'), 'utf8'));
+  expect(audit.summary.source_entries).toBe(2);
+  expect(audit.summary.replacement_entries).toBe(2);
+  expect(audit.differences).toEqual(expect.arrayContaining([expect.objectContaining({ path: 'linked', kind: 'type_changed' })]));
+  expect(audit.differences.some((item: { path: string }) => item.path.includes('private.txt'))).toBe(false);
+});
+
+test('@claim:timestamp-policy timestamp-only differences are reported without failing', () => {
+  const root = temp();
+  const source = join(root, 'source');
+  const replacement = join(root, 'replacement');
+  write(join(source, 'same.txt'), 'same');
+  write(join(replacement, 'same.txt'), 'same');
+  utimesSync(join(source, 'same.txt'), new Date(1_700_000_000_000), new Date(1_700_000_000_000));
+  utimesSync(join(replacement, 'same.txt'), new Date(1_710_000_000_000), new Date(1_710_000_000_000));
+  const result = spawnSync(binary, ['--json', 'check', source, replacement, '--output', join(root, 'evidence')], { encoding: 'utf8' });
+  expect(result.status).toBe(0);
+  expect(JSON.parse(result.stdout).summary).toMatchObject({ timestamp_only: 1, changed: 0 });
+});
+
+test('@claim:content-outcomes extra files pass while empty and no-match sources fail', () => {
+  const root = temp();
+  const source = join(root, 'source');
+  const replacement = join(root, 'replacement');
+  write(join(source, 'same.txt'), 'same');
+  write(join(replacement, 'same.txt'), 'same');
+  write(join(replacement, 'extra.txt'), 'extra');
+  const extra = spawnSync(binary, ['--json', 'check', source, replacement, '--output', join(root, 'extra-report')], { encoding: 'utf8' });
+  expect(extra.status).toBe(0);
+  expect(JSON.parse(extra.stdout).summary.extra).toBe(1);
+
+  const emptySource = join(root, 'empty-source');
+  const emptyReplacement = join(root, 'empty-replacement');
+  mkdirSync(emptySource);
+  mkdirSync(emptyReplacement);
+  expect(spawnSync(binary, ['check', emptySource, emptyReplacement, '--output', join(root, 'empty-report')]).status).toBe(2);
+
+  const noMatchSource = join(root, 'no-match-source');
+  const noMatchReplacement = join(root, 'no-match-replacement');
+  write(join(noMatchSource, 'only-source.txt'), 'source');
+  write(join(noMatchReplacement, 'only-replacement.txt'), 'replacement');
+  const noMatch = spawnSync(binary, ['--json', 'check', noMatchSource, noMatchReplacement, '--output', join(root, 'no-match-report')], { encoding: 'utf8' });
+  expect(noMatch.status).toBe(2);
+  expect(JSON.parse(noMatch.stdout).summary.matching_files).toBe(0);
+});
+
+test('@claim:exit-semantics exit codes distinguish results, failures, and invalid usage', () => {
+  const root = temp();
+  const source = join(root, 'source');
+  const replacement = join(root, 'replacement');
+  const restored = join(root, 'restored');
+  write(join(source, 'file.txt'), 'same');
+  write(join(replacement, 'file.txt'), 'same');
+  expect(spawnSync(binary, ['check', source, replacement, '--output', join(root, 'pass')]).status).toBe(0);
+  expect(spawnSync(binary, ['check', join(root, 'missing'), replacement, '--output', join(root, 'io')]).status).toBe(1);
+  write(join(source, 'changed.txt'), 'before');
+  write(join(replacement, 'changed.txt'), 'after');
+  expect(spawnSync(binary, ['check', source, replacement, '--output', join(root, 'difference')]).status).toBe(2);
+  write(join(restored, 'file.txt'), 'wrong');
+  expect(spawnSync(binary, ['verify-restore', join(root, 'pass', 'audit.json'), restored]).status).toBe(3);
+  expect(spawnSync(binary, ['check', source, replacement, '--sample-size', '0']).status).toBe(64);
+});
+
+test('@claim:json-output global JSON mode emits parseable check and restore results', () => {
+  const root = temp();
+  const source = join(root, 'source');
+  const replacement = join(root, 'replacement');
+  const restored = join(root, 'restored');
+  write(join(source, 'file.txt'), 'same');
+  write(join(replacement, 'file.txt'), 'same');
+  write(join(restored, 'file.txt'), 'same');
+  const evidence = join(root, 'evidence');
+  const check = execFileSync(binary, ['--json', 'check', source, replacement, '--output', evidence], { encoding: 'utf8' });
+  expect(JSON.parse(check)).toMatchObject({ status: 'ready_for_restore_test', complete: true });
+  const restore = execFileSync(binary, ['--json', 'verify-restore', join(evidence, 'audit.json'), restored], { encoding: 'utf8' });
+  expect(JSON.parse(restore)).toMatchObject({ passed: 1, failed: 0 });
 });

@@ -1,17 +1,17 @@
 [
   {
     "id": "demo-complete",
-    "claim": "The demo completes a content check and verifies three restored sample files.",
+    "claim": "The demo compares five source and five replacement files with zero content differences, then verifies three restored files.",
     "where": "demo page, README",
     "test": "npm test -- --grep @claim:demo-complete",
     "sandbox": "fresh temp directory; run the bundled CLI demo; assert both reports and three passed samples"
   },
   {
     "id": "no-upload",
-    "claim": "No files are uploaded.",
+    "claim": "The CLI and browser demo upload no files or make third-party requests.",
     "where": "landing facts, privacy page, README",
     "test": "npm test -- --grep @claim:no-upload",
-    "sandbox": "fresh browser context on /demo; fail any request outside the product origin"
+    "sandbox": "fresh browser context on /demo plus a CLI demo under an LD_PRELOAD network-call guard; fail any browser request outside the origin or CLI socket/DNS attempt"
   },
   {
     "id": "offline-cli",
@@ -29,17 +29,17 @@
   },
   {
     "id": "demo-isolated",
-    "claim": "The browser demo stores no demo records.",
-    "where": "demo banner, README",
+    "claim": "The website sets no cookies and stores no personal or demo records.",
+    "where": "demo banner, privacy page, README",
     "test": "npm test -- --grep @claim:demo-isolated",
-    "sandbox": "fresh browser context; reset demo; assert localStorage, sessionStorage, and IndexedDB contain no demo records"
+    "sandbox": "fresh browser context across every route; reset demo; assert response cookies, cookie jar, localStorage, sessionStorage, and IndexedDB are empty"
   },
   {
     "id": "read-only",
     "claim": "The check does not change either directory tree.",
     "where": "landing boundaries, README",
     "test": "npm test -- --grep @claim:read-only",
-    "sandbox": "fresh temp trees; record contents and metadata; run check; assert both trees are unchanged"
+    "sandbox": "fresh temp trees; assert a normal check leaves both unchanged; reject output equal to or beneath either tree, a symlink alias, and the default output from inside a tree"
   },
   {
     "id": "hash-differences",
@@ -50,10 +50,10 @@
   },
   {
     "id": "redacted-report",
-    "claim": "Redaction hides filenames and directory paths in the evidence packet.",
+    "claim": "Evidence contains paths and SHA-256 hashes by default; redaction hides filenames and directory paths.",
     "where": "install guide, privacy page, README",
     "test": "npm test -- --grep @claim:redacted-report",
-    "sandbox": "fresh temp trees with a private name; run --redact; inspect every evidence file for that name and root path"
+    "sandbox": "fresh temp trees with a private name; assert plain evidence contains its path and hash, then inspect every redacted evidence file for the name and roots"
   },
   {
     "id": "repeatable-sample",
@@ -68,5 +68,54 @@
     "where": "landing preview, demo page, README",
     "test": "npm test -- --grep @claim:printable-report",
     "sandbox": "bundled demo in a fresh temp directory; assert report markup, print CSS, verdict, and recovery caveat"
+  },
+  {
+    "id": "path-identity",
+    "claim": "The CLI rejects non-UTF-8 filenames instead of merging distinct files.",
+    "where": "README filesystem notes",
+    "test": "npm test -- --grep @claim:path-identity",
+    "sandbox": "fresh Unix temp trees with distinct raw-byte filenames; assert exit 1, a rename instruction, and no audit"
+  },
+  {
+    "id": "incomplete-audit",
+    "claim": "Restore verification refuses an audit whose content check failed.",
+    "where": "README restore instructions",
+    "test": "npm test -- --grep @claim:incomplete-audit",
+    "sandbox": "fresh trees with one matching and one missing file; assert check exit 2, restore exit 3, and a blocked report"
+  },
+  {
+    "id": "symlink-policy",
+    "claim": "Symbolic links are recorded as links and never followed.",
+    "where": "README filesystem notes, evidence report",
+    "test": "npm test -- --grep @claim:symlink-policy",
+    "sandbox": "fresh temp trees with a directory symlink; assert it is one link entry, its target is not traversed, and a link/file mismatch is reported"
+  },
+  {
+    "id": "timestamp-policy",
+    "claim": "Timestamp-only differences are reported and do not fail a content check.",
+    "where": "README filesystem notes, evidence report",
+    "test": "npm test -- --grep @claim:timestamp-policy",
+    "sandbox": "fresh matching files with distinct mtimes; assert exit 0, one timestamp-only result, and zero changed files"
+  },
+  {
+    "id": "content-outcomes",
+    "claim": "Extra replacement files do not fail; empty sources and sources with no matching regular files do fail.",
+    "where": "README exit semantics",
+    "test": "npm test -- --grep @claim:content-outcomes",
+    "sandbox": "fresh temp cases for one extra replacement file, an empty source, and source/replacement trees with no matching paths"
+  },
+  {
+    "id": "exit-semantics",
+    "claim": "Exit codes distinguish success (0), read/input failures (1), content differences (2), restore failures (3), and invalid usage (64).",
+    "where": "README exit code table, install guide",
+    "test": "npm test -- --grep @claim:exit-semantics",
+    "sandbox": "fresh temp cases producing each documented exit code, including invalid --sample-size 0"
+  },
+  {
+    "id": "json-output",
+    "claim": "Global --json mode emits parseable check and restore results.",
+    "where": "README scripting section",
+    "test": "npm test -- --grep @claim:json-output",
+    "sandbox": "fresh matching check and restore; parse both stdout documents and assert their result fields"
   }
 ]

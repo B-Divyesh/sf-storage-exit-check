@@ -29,7 +29,7 @@ directory.
 
 The browser demo is a recording of this exact flow. It uses no localStorage,
 sessionStorage, IndexedDB, account, or backend tenant. **Reset demo** only
-replays the recording. **Start for real** returns to the install path. The
+replays the recording. **Start for real** returns to the home page. The
 service worker may cache static site assets, but it never stores demo records.
 
 ## Claims checked in the sandbox

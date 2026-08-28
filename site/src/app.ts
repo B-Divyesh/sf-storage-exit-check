@@ -74,9 +74,9 @@ cd sf-storage-exit-check
 cargo install --path .</code></pre><h2>Try the sandbox</h2><pre tabindex="0"><code>storage-exit-check demo</code></pre><p>The command creates sample folders under your system temp directory.</p><h2>Check two real folders</h2><pre tabindex="0"><code>storage-exit-check check \
   /path/to/cloud-export \
   /path/to/nas-copy \
-  --output exit-check-report</code></pre><p>Use <code>--redact</code> to hide names and paths in the evidence packet.</p><h2>Verify a restored sample</h2><pre tabindex="0"><code>storage-exit-check verify-restore \
+  --output exit-check-report</code></pre><p>Keep the output outside both folders. Use <code>--redact</code> to hide names and paths.</p><h2>Verify a restored sample</h2><pre tabindex="0"><code>storage-exit-check verify-restore \
   exit-check-report/audit.json \
-  /path/to/separate-restored-sample</code></pre><p>Exit code 0 means the check passed. Codes 2 and 3 report differences.</p></article>`),
+  /path/to/separate-restored-sample</code></pre><p>Only verify a completed audit. Exit codes 2 and 3 report check or restore differences. Code 64 reports invalid usage.</p></article>`),
   },
   '/privacy': {
     title: 'Privacy — Storage Exit Check',
