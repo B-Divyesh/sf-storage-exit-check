@@ -1,0 +1,29 @@
+Clean clone: /tmp/storage-exit-final-clean-1OV1PX/repo
+Commit: 4c540278a1fc908e6c9a2e03c357930c360e41a1
+Preparation: npm ci
+Result: 24/24 exact claim commands passed.
+
+PASS demo-complete
+PASS browser-demo-provenance
+PASS no-upload
+PASS check-write-boundary
+PASS offline-cli
+PASS mit-free
+PASS demo-isolated
+PASS cli-demo-isolated
+PASS default-demo-temp
+PASS read-only
+PASS hash-differences
+PASS redacted-report
+PASS redacted-restore
+PASS duplicate-file-restore
+PASS repeatable-sample
+PASS printable-report
+PASS path-identity
+PASS incomplete-audit
+PASS separate-restore
+PASS symlink-policy
+PASS timestamp-policy
+PASS content-outcomes
+PASS exit-semantics
+PASS json-output

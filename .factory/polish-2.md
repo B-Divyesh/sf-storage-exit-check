@@ -1,14 +1,17 @@
 # Polish round 2 — complete finding closure
 
-**Base candidate:** `f59242ee4814401753f8742886a0de592e34f91a`  
-**Repair commit:** `48e823a` (updated after final evidence commit)  
+**Base candidate:** `f59242ee4814401753f8742886a0de592e34f91a`
+**Repair commit:** `48e823a`
+**Evidence commit:** `4c54027`
+**Deployment:** `22cad997-1447-4f0f-bd8e-95c9b4e93d36`
 **Live URL:** https://storage-exit-check.sociobot.in
 
 The following table maps every finding in every prior review to its durable
-implementation and evidence. Local visual evidence is
-`evidence/polish-2-home-mobile.png`, `evidence/polish-2-demo-mobile.png`, and
-`evidence/polish-2-terms-desktop.png`. The live check column was rerun cold
-after the final static deployment.
+implementation and evidence. Cold live visual evidence is
+`evidence/polish-2-live-home-mobile.png`,
+`evidence/polish-2-live-demo-mobile.png`, and
+`evidence/polish-2-live-terms-desktop.png`. The live check column was rerun
+cold after the final static deployment.
 
 | Finding | Change made | Test evidence | Screenshot / live URL check |
 | --- | --- | --- | --- |
@@ -46,6 +49,12 @@ after the final static deployment.
 
 - `npm test`: 10 Rust tests and 33 Playwright tests passed.
 - `npm run build`, `cargo fmt --all -- --check`, `cargo clippy --all-targets -- -D warnings`, and `npm run pack:cli` passed.
-- The claim registry contains 24 claims. Every exact registered command was run from a clean clone after the final commit; all passed.
+- The claim registry contains 24 claims. Every exact registered command was run
+  from a clean clone at `4c540278a1fc908e6c9a2e03c357930c360e41a1`; all passed
+  (see `evidence/clean-claim-tests-round2.log`).
 - The static build is 12.62 kB JavaScript (4.88 kB gzip) and 10.38 kB CSS (3.34 kB gzip).
-- Cold live verification checked the landing page, demo, install, privacy, terms, static 404, sample report, and evidence download after deployment.
+- Cold live verification checked the landing page, demo, install, privacy,
+  terms, static 404, sample report, and evidence download after deployment.
+  The live JS SHA-256 was `fcafdd0d85653815da29d76ab2fd9aa51eaa535b38a1786b3b8fa6056da42fb2`,
+  matching `dist/site`. Every normal route had no console errors; the sole
+  error observed was the browser's expected log for the intentional HTTP 404.

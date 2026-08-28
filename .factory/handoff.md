@@ -24,22 +24,28 @@ and botanical field-guide static site. The closure map is in
   `cargo fmt --all -- --check`, `cargo clippy --all-targets -- -D warnings`,
   and `npm run pack:cli` passed.
 - Claims: all 24 exact commands from `.factory/claims.json` passed in a clean
-  clone after `npm ci`.
+  clone after `npm ci` at `4c540278a1fc908e6c9a2e03c357930c360e41a1`. See
+  `.factory/evidence/clean-claim-tests-round2.log`.
 - Build output: `dist/site/`; initial JavaScript is 12.62 kB (4.88 kB gzip)
   and CSS is 10.38 kB (3.34 kB gzip).
 - Accessibility: the full route suite has zero Axe violations, keyboard
   navigation, visible focus, 44 px mobile controls, reduced-motion behavior,
   one h1/main, route titles, legal links, and static 404 metadata coverage.
-- Visual evidence: `.factory/evidence/polish-2-home-mobile.png`,
-  `.factory/evidence/polish-2-demo-mobile.png`, and
-  `.factory/evidence/polish-2-terms-desktop.png`.
+- Live visual evidence: `.factory/evidence/polish-2-live-home-mobile.png`,
+  `.factory/evidence/polish-2-live-demo-mobile.png`, and
+  `.factory/evidence/polish-2-live-terms-desktop.png`.
 
 ## Deploy and handoff
 
 The work order builds `dist/site/` with `npm ci && npm run build:site`. Param
 Factory owns production deployment; the repository includes the required
-`staticwebapp.config.json` route and 404 configuration. The final commit and
-post-deploy cold live checks are recorded below once push/deployment completes.
+`staticwebapp.config.json` route and 404 configuration. Commit `48e823a` was
+pushed to `main`, and Static Web Apps deployment
+`22cad997-1447-4f0f-bd8e-95c9b4e93d36` succeeded. Cold live checks then passed
+at 390 px for `/`, `/?demo=1`, `/demo`, `/install`, `/privacy`, `/terms`, and
+the intentional HTTP 404. They found one h1/main, zero Axe violations, no
+overflow, same-origin requests only, empty browser storage, and working demo
+reset/report/download actions. The deployed JS SHA-256 matches `dist/site`.
 
 ## Known gaps
 
