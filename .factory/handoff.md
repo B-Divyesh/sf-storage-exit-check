@@ -57,7 +57,7 @@ Observed results on 28 August 2026:
 
 - `npm test`: 10 Rust unit tests and 32 Playwright tests passed.
 - Every one of the 23 exact claim commands passed independently from clean clone
-  `/tmp/storage-exit-polish-claims-iPMYXG/repo` at `8d1e7f1`; full output is in
+  `/tmp/storage-exit-polish-final-eRlsAl/repo` at `e043292`; full output is in
   `.factory/evidence/clean-claim-tests.log`.
 - `npm run build`: passed and produced `dist/site/`. Initial JavaScript is
   12.61 KiB (4.87 KiB gzip); CSS is 10.38 KiB (3.34 KiB gzip).

@@ -1,7 +1,7 @@
 # Polish round 1 — finding closure
 
 **Base review:** `346002713869cc62a47bbda59de174dae0aaaccf`  
-**Repaired candidate:** `8d1e7f13a2002fc6bedaec6892082d6d57c7d78e` plus this evidence commit  
+**Repaired candidate:** `e043292a6db441c6356d39411c1e4b616e2c8bb7` plus this final evidence update  
 **Live URL:** https://storage-exit-check.sociobot.in  
 **Result:** all 23 findings closed; no known unresolved finding.
 
@@ -42,7 +42,7 @@ Desktop captures sit beside them. The full independent claim-command log is
 
 - Full local suite: `npm test` — 10 Rust tests and 32 Playwright tests passed.
 - Clean clone: all 23 exact `.factory/claims.json` commands passed at
-  `8d1e7f13a2002fc6bedaec6892082d6d57c7d78e`.
+  `e043292a6db441c6356d39411c1e4b616e2c8bb7`.
 - Packaging: `cargo package` produced a 372.6 KiB crate; an offline install into
   a fresh consumer root completed the demo and wrote all four evidence files.
 - Static build: initial JS 12.61 KiB (4.87 KiB gzip); CSS 10.38 KiB (3.34 KiB

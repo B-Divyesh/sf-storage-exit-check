@@ -1,0 +1,1507 @@
+===== demo-complete =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:demo-complete
+
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.24
+   Compiling version_check v0.9.5
+   Compiling generic-array v0.14.7
+   Compiling typenum v1.20.1
+   Compiling syn v3.0.4
+   Compiling utf8parse v0.2.2
+   Compiling libc v0.2.189
+   Compiling serde_core v1.0.229
+   Compiling anstyle-parse v1.0.0
+   Compiling getrandom v0.4.3
+   Compiling rustix v1.1.4
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling colorchoice v1.0.5
+   Compiling anstyle v1.0.14
+   Compiling cfg-if v1.0.4
+   Compiling anstyle-query v1.1.5
+   Compiling zmij v1.0.23
+   Compiling anstream v1.0.0
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling serde v1.0.229
+   Compiling clap_lex v1.1.0
+   Compiling serde_json v1.0.151
+   Compiling bitflags v2.13.1
+   Compiling heck v0.5.0
+   Compiling linux-raw-sys v0.12.1
+   Compiling strsim v0.11.1
+   Compiling clap_builder v4.6.6
+   Compiling clap_derive v4.6.4
+   Compiling digest v0.10.7
+   Compiling serde_derive v1.0.229
+   Compiling fastrand v2.5.0
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling same-file v1.0.6
+   Compiling cpufeatures v0.2.17
+   Compiling once_cell v1.21.4
+   Compiling tempfile v3.27.0
+   Compiling sha2 v0.10.9
+   Compiling walkdir v2.5.0
+   Compiling clap v4.6.6
+   Compiling storage-exit-check v0.1.0 (/tmp/storage-exit-polish-final-eRlsAl/repo)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 12.30s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Compiling storage-exit-check v0.1.0 (/tmp/storage-exit-polish-final-eRlsAl/repo)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.33s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling version_check v0.9.5
+   Compiling unicode-ident v1.0.24
+   Compiling generic-array v0.14.7
+   Compiling typenum v1.20.1
+   Compiling syn v3.0.4
+   Compiling serde_core v1.0.229
+   Compiling utf8parse v0.2.2
+   Compiling anstyle-parse v1.0.0
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling anstyle v1.0.14
+   Compiling anstyle-query v1.1.5
+   Compiling zmij v1.0.23
+   Compiling colorchoice v1.0.5
+   Compiling anstream v1.0.0
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling clap_lex v1.1.0
+   Compiling serde v1.0.229
+   Compiling heck v0.5.0
+   Compiling serde_json v1.0.151
+   Compiling strsim v0.11.1
+   Compiling clap_derive v4.6.4
+   Compiling clap_builder v4.6.6
+   Compiling digest v0.10.7
+   Compiling serde_derive v1.0.229
+   Compiling cfg-if v1.0.4
+   Compiling cpufeatures v0.2.17
+   Compiling same-file v1.0.6
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling walkdir v2.5.0
+   Compiling sha2 v0.10.9
+   Compiling clap v4.6.6
+   Compiling storage-exit-check v0.1.0 (/tmp/storage-exit-polish-final-eRlsAl/repo)
+    Finished `release` profile [optimized] target(s) in 17.23s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 151ms
+[1A[2K[WebServer] (node:16350) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:16362) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:16362) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:167:1 › @claim:demo-complete demo verifies a three-file restore sample
+[1A[2K  1 passed (2.1s)
+===== browser-demo-provenance =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:browser-demo-provenance
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 148ms
+[1A[2K[WebServer] (node:16516) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:16528) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:16528) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:205:1 › @claim:browser-demo-provenance browser transcript and downloads match a fresh release CLI demo
+[1A[2K  1 passed (2.4s)
+===== no-upload =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:no-upload
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 147ms
+[1A[2K[WebServer] (node:16739) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:16751) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:16751) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:284:1 › @claim:no-upload browser and CLI demo make no network requests
+[1A[2K  1 passed (2.4s)
+===== offline-cli =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:offline-cli
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 147ms
+[1A[2K[WebServer] (node:16989) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:17001) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:17001) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:327:1 › @claim:offline-cli bundled CLI demo needs no internet
+[1A[2K  1 passed (1.8s)
+===== mit-free =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:mit-free
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 143ms
+[1A[2K[WebServer] (node:17155) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:17167) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:17167) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:336:1 › @claim:mit-free package and license identify MIT
+[1A[2K  1 passed (1.8s)
+===== demo-isolated =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:demo-isolated
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 148ms
+[1A[2K[WebServer] (node:17320) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:17332) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:17332) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:342:1 › @claim:demo-isolated website sets no cookies and stores no personal or demo records
+[1A[2K  1 passed (2.6s)
+===== cli-demo-isolated =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:cli-demo-isolated
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 153ms
+[1A[2K[WebServer] (node:17549) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:17561) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:17561) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:298:1 › @claim:cli-demo-isolated traced demo avoids user data and keeps writes in its sandbox
+[1A[2K  1 passed (1.9s)
+===== default-demo-temp =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:default-demo-temp
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 155ms
+[1A[2K[WebServer] (node:17720) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:17732) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:17732) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:316:1 › @claim:default-demo-temp default demo creates its sandbox beneath the OS temp folder
+[1A[2K  1 passed (1.8s)
+===== read-only =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:read-only
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 143ms
+[1A[2K[WebServer] (node:17886) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:17898) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:17898) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:360:1 › @claim:read-only check leaves both input trees unchanged
+[1A[2Ktests/product.spec.ts:360:1 › @claim:read-only check leaves both input trees unchanged
+
+
+[1A[2K  1 passed (1.8s)
+===== hash-differences =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:hash-differences
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 139ms
+[1A[2K[WebServer] (node:18058) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:18070) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:18070) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:389:1 › @claim:hash-differences changed content is reported
+[1A[2K  1 passed (1.8s)
+===== redacted-report =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:redacted-report
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 142ms
+[1A[2K[WebServer] (node:18224) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:18236) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:18236) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:401:1 › @claim:redacted-report evidence omits private names and roots
+[1A[2Ktests/product.spec.ts:401:1 › @claim:redacted-report evidence omits private names and roots
+
+
+[1A[2K
+
+[1A[2K  1 passed (1.8s)
+===== redacted-restore =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:redacted-restore
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 162ms
+[1A[2K[WebServer] (node:18410) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:18422) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:18422) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:424:1 › @claim:redacted-restore redacted audits match both size and SHA-256
+[1A[2Ktests/product.spec.ts:424:1 › @claim:redacted-restore redacted audits match both size and SHA-256
+
+
+[1A[2K  1 passed (1.9s)
+===== duplicate-file-restore =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:duplicate-file-restore
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 165ms
+[1A[2K[WebServer] (node:18580) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:18592) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:18592) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:444:1 › @claim:duplicate-file-restore redacted restore requires every sampled copy
+[1A[2Ktests/product.spec.ts:444:1 › @claim:duplicate-file-restore redacted restore requires every sampled copy
+
+
+[1A[2K  1 passed (1.9s)
+===== repeatable-sample =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:repeatable-sample
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.04s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 145ms
+[1A[2K[WebServer] (node:18749) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:18761) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:18761) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:468:1 › @claim:repeatable-sample unchanged manifests select the same sample
+[1A[2Ktests/product.spec.ts:468:1 › @claim:repeatable-sample unchanged manifests select the same sample
+
+
+[1A[2K
+
+[1A[2K  1 passed (1.9s)
+===== printable-report =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:printable-report
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 155ms
+[1A[2K[WebServer] (node:18917) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:18929) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:18929) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:484:1 › @claim:printable-report demo writes printable evidence with a caveat
+[1A[2Ktests/product.spec.ts:484:1 › @claim:printable-report demo writes printable evidence with a caveat
+
+
+[1A[2K  1 passed (1.9s)
+===== path-identity =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:path-identity
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 145ms
+[1A[2K[WebServer] (node:19083) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:19095) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:19095) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:493:1 › @claim:path-identity non-UTF-8 filenames are rejected instead of merged
+[1A[2K  1 passed (1.8s)
+===== incomplete-audit =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:incomplete-audit
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 141ms
+[1A[2K[WebServer] (node:19249) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:19261) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:19261) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:509:1 › @claim:incomplete-audit restore verification refuses a failed content check
+[1A[2K  1 passed (1.8s)
+===== separate-restore =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:separate-restore
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 165ms
+[1A[2K[WebServer] (node:19435) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:19447) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:19447) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:529:1 › @claim:separate-restore restore verification rejects audited input trees and aliases
+[1A[2K  1 passed (1.9s)
+===== symlink-policy =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:symlink-policy
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 168ms
+[1A[2K[WebServer] (node:19610) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:19622) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:19622) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:571:1 › @claim:symlink-policy links are recorded as links and never followed
+[1A[2K  1 passed (1.9s)
+===== timestamp-policy =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:timestamp-policy
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 143ms
+[1A[2K[WebServer] (node:19776) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:19788) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:19788) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:591:1 › @claim:timestamp-policy timestamp-only differences are reported without failing
+[1A[2K  1 passed (1.8s)
+===== content-outcomes =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:content-outcomes
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 147ms
+[1A[2K[WebServer] (node:19942) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:19954) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:19954) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:604:1 › @claim:content-outcomes extra files pass while empty and no-match sources fail
+[1A[2K  1 passed (1.9s)
+===== exit-semantics =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:exit-semantics
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.17s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 392ms
+[1A[2K[WebServer] (node:20110) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:20122) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:20122) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:630:1 › @claim:exit-semantics exit codes distinguish results, failures, and invalid usage
+[1A[2K  1 passed (3.4s)
+===== json-output =====
+
+> storage-exit-check-site@0.1.0 test
+> cargo test && cargo build && npm run typecheck && npm run build:site && playwright test --grep @claim:json-output
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running unittests src/main.rs (target/debug/deps/storage_exit_check-cec9eb7b2251e352)
+
+running 10 tests
+test tests::bundled_demo_fixtures_match_the_inspectable_example_tree ... ok
+test tests::empty_source_is_not_ready ... ok
+test tests::output_inside_an_input_or_its_alias_is_rejected ... ok
+test tests::finds_missing_changed_extra_and_matching_files ... ok
+test tests::rejects_non_utf8_filenames_without_collapsing_them ... ok
+test tests::restore_detects_wrong_content ... ok
+test tests::redaction_removes_paths_and_restore_uses_content ... ok
+test tests::restore_is_blocked_when_the_content_audit_is_incomplete ... ok
+test tests::restore_requires_a_directory_separate_from_both_audited_inputs ... ok
+test tests::sample_is_reproducible ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+> storage-exit-check-site@0.1.0 build:site
+> cargo build --release && npm run generate:demo && vite build site --outDir ../dist/site --emptyOutDir
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> storage-exit-check-site@0.1.0 generate:demo
+> node scripts/generate-demo.mjs
+
+vite v6.4.3 building for production...
+transforming...
+✓ 5 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/site/index.html                  1.98 kB │ gzip: 0.66 kB
+../dist/site/assets/index-BDXcnISK.css  10.38 kB │ gzip: 3.34 kB
+../dist/site/assets/index-yKP1ZkfC.js   12.61 kB │ gzip: 4.87 kB
+✓ built in 166ms
+[1A[2K[WebServer] (node:20300) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:20312) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:20312) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] tests/product.spec.ts:647:1 › @claim:json-output global JSON mode emits parseable check and restore results
+[1A[2K  1 passed (1.9s)
+ALL 23 CLAIM COMMANDS PASSED
