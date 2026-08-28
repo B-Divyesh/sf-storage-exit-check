@@ -1,12 +1,14 @@
 # Storage Exit Check handoff — QA repair 2
 
-## Status: repaired, verified, and ready to deploy
+## Status: repaired, verified, pushed, and deployed
 
 This repair starts from verifier report commit
 `5ed0a96aad469a87d08e66a32536f177bbf89890` for candidate
 `cd9436694a588c7e4f338b4b7479418354ba8555`. Every release-blocking and
 secondary finding in `.factory/verification-2.md` is addressed. The artifact
 remains a Rust CLI with a static Vite documentation/demo site.
+The repair implementation is commit
+`c55aa89319ef73425b789631578001acabf5433d` on `main`.
 
 ## Corrections and regression evidence
 
@@ -81,11 +83,32 @@ the LCP image is 83,712 bytes.
 
 ## Deploy
 
-Deployment remains the existing static class. Build with `npm run build`, then
-run `/opt/fleet/lib/deploy-static.sh storage-exit-check dist/site`. After
-deployment, verify live artifact hashes, response policies, routes, privacy,
-offline behavior, and the production identity at
-`https://storage-exit-check.sociobot.in`.
+Deployment remains the existing static class. On 2026-08-28,
+`/opt/fleet/lib/deploy-static.sh storage-exit-check dist/site` completed with
+Azure deployment ID `faed43e7-1c3e-4e9b-8240-1269fade5936`; the custom domain
+reported Ready and HTTPS 200.
+
+Live `index.html`, hashed JS/CSS, both versioned WebP files, `sw.js`, and
+`404.html` match `dist/site` byte for byte. `/`, `/demo`, `/install`,
+`/privacy`, and `/terms` return 200; an unknown path returns the styled HTTP
+404. Live headers include HSTS, `nosniff`, strict-origin referrer policy,
+permissions policy, and the same-origin CSP. HTML and `sw.js` revalidate;
+hashed assets return `public, max-age=31536000, immutable`.
+
+The live browser check found no console/page errors, external requests,
+cookies, local/session records, or IndexedDB records. Desktop and 390×844 axe
+scans found zero serious or critical issues. The smallest visible control was
+44×44 CSS pixels, first Tab reached the skip link, and keyboard navigation
+moved focus to the home h1. The active `storage-exit-check-v3` service worker
+had no waiting update and reloaded `/demo` offline with HTTP 200. Evidence is
+in `/tmp/storage-exit-live-avcWli`, `/tmp/storage-exit-verify-live`,
+`/tmp/storage-exit-live-desktop-repair.png`, and
+`/tmp/storage-exit-live-mobile-repair.png`.
+
+Live Lighthouse 12.8.2 mobile scored 100 for performance, accessibility, best
+practices, and SEO: FCP 0.8 s, LCP 1.3 s, CLS 0, TBT 0 ms, and 91 KiB total
+transfer. The live URL verifier passed in 631 ms with one h1, `lang=en`, main,
+alt text, labelled buttons, and no console errors.
 
 ## Known limits
 
