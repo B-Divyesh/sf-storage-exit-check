@@ -109,6 +109,8 @@ struct Audit {
     created_unix_seconds: u64,
     source: String,
     replacement: String,
+    source_manifest_sha256: String,
+    replacement_manifest_sha256: String,
     redacted: bool,
     complete: bool,
     summary: Summary,
@@ -358,6 +360,8 @@ fn create_audit(
     }
     let source_entries = snapshot(&source_root)?;
     let replacement_entries = snapshot(&replacement_root)?;
+    let source_manifest_sha256 = manifest_digest(&source_entries);
+    let replacement_manifest_sha256 = manifest_digest(&replacement_entries);
     let mut summary = Summary {
         source_entries: source_entries.len(),
         replacement_entries: replacement_entries.len(),
@@ -397,8 +401,11 @@ fn create_audit(
                     path: shown,
                     kind: "content_changed".into(),
                     detail: format!(
-                        "Content differs: source {} bytes, replacement {} bytes.",
-                        source_entry.size, replacement_entry.size
+                        "Content differs: source {} bytes with SHA-256 {}; replacement {} bytes with SHA-256 {}.",
+                        source_entry.size,
+                        source_entry.hash.as_deref().unwrap_or("unavailable"),
+                        replacement_entry.size,
+                        replacement_entry.hash.as_deref().unwrap_or("unavailable")
                     ),
                 });
             }
@@ -477,6 +484,8 @@ fn create_audit(
         created_unix_seconds: now_seconds(),
         source: if redact { "[redacted source]".into() } else { source_root.display().to_string() },
         replacement: if redact { "[redacted replacement]".into() } else { replacement_root.display().to_string() },
+        source_manifest_sha256,
+        replacement_manifest_sha256,
         redacted: redact,
         complete,
         summary,
@@ -500,6 +509,24 @@ fn sample_seed(matching: &[(String, Entry)]) -> String {
         hasher.update(path.as_bytes());
         hasher.update([0]);
         hasher.update(entry.hash.unwrap_or_default().as_bytes());
+        hasher.update([0]);
+    }
+    format!("{:x}", hasher.finalize())
+}
+
+fn manifest_digest(entries: &BTreeMap<String, Entry>) -> String {
+    let mut hasher = Sha256::new();
+    for (path, entry) in entries {
+        hasher.update(path.as_bytes());
+        hasher.update([0]);
+        hasher.update(match entry.kind {
+            EntryKind::File => b"file".as_slice(),
+            EntryKind::Symlink => b"symlink".as_slice(),
+        });
+        hasher.update([0]);
+        hasher.update(entry.size.to_le_bytes());
+        hasher.update(entry.hash.as_deref().unwrap_or_default().as_bytes());
+        hasher.update(entry.link_target.as_deref().unwrap_or_default().as_bytes());
         hasher.update([0]);
     }
     format!("{:x}", hasher.finalize())
@@ -709,7 +736,7 @@ fn render_audit_report(audit: &Audit) -> String {
         format!("<table><thead><tr><th>Sample</th><th>Path</th><th>Size</th><th>SHA-256</th></tr></thead><tbody>{rows}</tbody></table>")
     };
     let body = format!(
-        r#"<p class="kicker">Storage Exit Check · evidence packet</p><h1>Migration content check</h1><p>Created at Unix time {} with version {}.</p><section class="verdict"><strong class="{}">{}</strong><br>{} missing · {} changed · {} extra</section><h2>Tree summary</h2><table><tbody><tr><th>Source</th><td>{} entries · {} bytes</td></tr><tr><th>Replacement</th><td>{} entries · {} bytes</td></tr><tr><th>Matching files</th><td>{}</td></tr><tr><th>Timestamp-only differences</th><td>{}</td></tr></tbody></table><h2>Differences</h2>{}<h2>Reproducible restore sample</h2><p>Seed: <code>{}</code></p>{}<h2>Read before cancelling</h2><p class="note">A sampled restore reduces uncertainty. It does not prove full disaster recovery.</p><ul><li>Restore the listed samples from the replacement backup into a separate empty directory.</li><li>Run <code>storage-exit-check verify-restore audit.json PATH</code>.</li><li>Review retention, off-site copies, and recovery access before cancelling.</li><li>This tool never deletes source files or cancels a service.</li></ul>"#,
+        r#"<p class="kicker">Storage Exit Check · evidence packet</p><h1>Migration content check</h1><p>Created at Unix time {} with version {}.</p><section class="verdict"><strong class="{}">{}</strong><br>{} missing · {} changed · {} extra</section><h2>Tree summary</h2><table><tbody><tr><th>Source</th><td>{} entries · {} bytes<br><code>manifest {}</code></td></tr><tr><th>Replacement</th><td>{} entries · {} bytes<br><code>manifest {}</code></td></tr><tr><th>Matching files</th><td>{}</td></tr><tr><th>Timestamp-only differences</th><td>{}</td></tr></tbody></table><h2>Differences</h2>{}<h2>Reproducible restore sample</h2><p>Seed: <code>{}</code></p>{}<h2>Read before cancelling</h2><p class="note">A sampled restore reduces uncertainty. It does not prove full disaster recovery.</p><ul><li>Restore the listed samples from the replacement backup into a separate empty directory.</li><li>Run <code>storage-exit-check verify-restore audit.json PATH</code>.</li><li>Review retention, off-site copies, and recovery access before cancelling.</li><li>This tool never deletes source files or cancels a service.</li></ul>"#,
         audit.created_unix_seconds,
         escape_html(&audit.tool_version),
         verdict_class,
@@ -719,8 +746,10 @@ fn render_audit_report(audit: &Audit) -> String {
         audit.summary.extra,
         audit.summary.source_entries,
         audit.summary.source_bytes,
+        escape_html(&audit.source_manifest_sha256),
         audit.summary.replacement_entries,
         audit.summary.replacement_bytes,
+        escape_html(&audit.replacement_manifest_sha256),
         audit.summary.matching_files,
         audit.summary.timestamp_only,
         differences,
@@ -863,6 +892,17 @@ mod tests {
         assert_eq!(audit.summary.changed, 1);
         assert_eq!(audit.summary.extra, 1);
         assert_eq!(audit.summary.matching_files, 1);
+        assert_ne!(
+            audit.source_manifest_sha256,
+            audit.replacement_manifest_sha256
+        );
+        assert!(audit
+            .differences
+            .iter()
+            .find(|item| item.kind == "content_changed")
+            .unwrap()
+            .detail
+            .contains("SHA-256"));
     }
 
     #[test]
