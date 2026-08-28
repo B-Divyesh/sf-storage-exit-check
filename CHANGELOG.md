@@ -9,3 +9,5 @@
 - Reject ambiguous non-UTF-8 filenames and output paths inside input trees.
 - Block restore verification when the original content audit is incomplete.
 - Separate invalid CLI usage from content-difference exit codes.
+- Reject source, replacement, descendant, and symbolic-link-alias directories
+  as restore targets using opaque audit boundary fingerprints.

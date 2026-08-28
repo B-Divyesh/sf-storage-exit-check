@@ -10,6 +10,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use walkdir::WalkDir;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+const RESTORE_BOUNDARY_DOMAIN: &[u8] = b"storage-exit-check:restore-boundary:v1\0";
 
 // These bytes are deliberately embedded from the inspectable `examples/` tree.
 // `demo` must remain runnable after `cargo install`, while the exact sample
@@ -137,6 +138,11 @@ struct Audit {
     replacement: String,
     source_manifest_sha256: String,
     replacement_manifest_sha256: String,
+    /// Opaque fingerprints of the two canonical input roots. They let restore
+    /// verification reject either input tree (and descendants/aliases) without
+    /// storing an unredacted root in a redacted audit.
+    #[serde(default)]
+    restore_boundary_fingerprints: Vec<String>,
     redacted: bool,
     complete: bool,
     summary: Summary,
@@ -355,6 +361,49 @@ fn validate_output_location(
     Ok(output)
 }
 
+fn restore_boundary_fingerprint(path: &Path) -> io::Result<String> {
+    let path = path.to_str().ok_or_else(|| {
+        io::Error::new(
+            io::ErrorKind::InvalidData,
+            "restore boundary path is not valid UTF-8",
+        )
+    })?;
+    let mut hasher = Sha256::new();
+    hasher.update(RESTORE_BOUNDARY_DOMAIN);
+    hasher.update(path.as_bytes());
+    Ok(format!("{:x}", hasher.finalize()))
+}
+
+fn validate_restore_location(audit: &Audit, restored_root: &Path) -> io::Result<()> {
+    // Schema 2 is the first audit format that can prove this boundary. Refuse
+    // earlier or malformed audits instead of making a successful restore claim
+    // that has not checked the restored directory is independent.
+    if audit.schema_version < 2 || audit.restore_boundary_fingerprints.len() != 2 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "audit cannot verify a separate restore directory; run check again with this version",
+        ));
+    }
+
+    // `restored_root` is canonical, so symlink aliases resolve before this
+    // comparison. Checking every ancestor rejects the root itself as well as a
+    // restored directory nested inside either audited input tree.
+    for ancestor in restored_root.ancestors() {
+        let fingerprint = restore_boundary_fingerprint(ancestor)?;
+        if audit
+            .restore_boundary_fingerprints
+            .iter()
+            .any(|input| input == &fingerprint)
+        {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "restored sample must be a separate directory outside the audited source and replacement trees",
+            ));
+        }
+    }
+    Ok(())
+}
+
 fn snapshot(root: &Path) -> io::Result<BTreeMap<String, Entry>> {
     let mut entries = BTreeMap::new();
     for item in WalkDir::new(root)
@@ -484,6 +533,10 @@ fn create_audit(
     let replacement_entries = snapshot(&replacement_root)?;
     let source_manifest_sha256 = manifest_digest(&source_entries);
     let replacement_manifest_sha256 = manifest_digest(&replacement_entries);
+    let restore_boundary_fingerprints = vec![
+        restore_boundary_fingerprint(&source_root)?,
+        restore_boundary_fingerprint(&replacement_root)?,
+    ];
     let mut summary = Summary {
         source_entries: source_entries.len(),
         replacement_entries: replacement_entries.len(),
@@ -601,13 +654,14 @@ fn create_audit(
         && summary.missing == 0
         && summary.changed == 0;
     Ok(Audit {
-        schema_version: 1,
+        schema_version: 2,
         tool_version: VERSION.into(),
         created_unix_seconds: now_seconds(),
         source: if redact { "[redacted source]".into() } else { source_root.display().to_string() },
         replacement: if redact { "[redacted replacement]".into() } else { replacement_root.display().to_string() },
         source_manifest_sha256,
         replacement_manifest_sha256,
+        restore_boundary_fingerprints,
         redacted: redact,
         complete,
         summary,
@@ -734,6 +788,7 @@ fn verify_restore(
         });
     }
     let restored_root = validate_root(restored, "restored sample")?;
+    validate_restore_location(audit, &restored_root)?;
     let mut by_hash = if audit.redacted {
         let manifest = snapshot(&restored_root)?;
         let mut map: HashMap<(u64, String), usize> = HashMap::new();
@@ -1101,6 +1156,27 @@ mod tests {
             .detail
             .contains("content check is incomplete"));
         assert!(render_restore_report(&audit, &result).contains("Restore verification blocked"));
+    }
+
+    #[test]
+    fn restore_requires_a_directory_separate_from_both_audited_inputs() {
+        let temp = tempfile::tempdir().unwrap();
+        let source = temp.path().join("source");
+        let replacement = temp.path().join("replacement");
+        let restored = temp.path().join("restored");
+        write(&source.join("nested/file.txt"), "same");
+        write(&replacement.join("nested/file.txt"), "same");
+        write(&restored.join("nested/file.txt"), "same");
+        let audit = create_audit(&source, &replacement, 1, true).unwrap();
+        let source_descendant = source.join("nested");
+
+        for candidate in [&source, &source_descendant, &replacement] {
+            let error = verify_restore(&audit, candidate).unwrap_err();
+            assert!(error
+                .to_string()
+                .contains("restored sample must be a separate directory"));
+        }
+        assert_eq!(verify_restore(&audit, &restored).unwrap().passed, 1);
     }
 
     #[test]

@@ -84,6 +84,13 @@
     "sandbox": "fresh trees with one matching and one missing file; assert check exit 2, restore exit 3, and a blocked report"
   },
   {
+    "id": "separate-restore",
+    "claim": "Restore verification refuses either audited input tree and symbolic-link aliases; the restore directory must be separate.",
+    "where": "README restore instructions",
+    "test": "npm test -- --grep @claim:separate-restore",
+    "sandbox": "fresh matching trees; assert source, a source descendant, replacement, and a replacement symlink alias exit 1 with no report, then assert an independent restored directory passes; repeat the boundary check from a redacted audit without exposing roots"
+  },
+  {
     "id": "symlink-policy",
     "claim": "Symbolic links are recorded as links and never followed.",
     "where": "README filesystem notes, evidence report",

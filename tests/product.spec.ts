@@ -358,6 +358,48 @@ test('@claim:incomplete-audit restore verification refuses a failed content chec
   expect(report).not.toContain('Restore sample passed');
 });
 
+test('@claim:separate-restore restore verification rejects audited input trees and aliases', () => {
+  test.skip(process.platform === 'win32', 'directory symlink creation needs privileges on Windows');
+  const root = temp();
+  const source = join(root, 'source');
+  const replacement = join(root, 'replacement');
+  const restored = join(root, 'restored');
+  write(join(source, 'nested', 'file.txt'), 'same');
+  write(join(replacement, 'nested', 'file.txt'), 'same');
+  const evidence = join(root, 'evidence');
+  expect(spawnSync(binary, ['check', source, replacement, '--output', evidence]).status).toBe(0);
+
+  const alias = join(root, 'replacement-alias');
+  symlinkSync(replacement, alias, 'dir');
+  for (const [name, candidate] of [
+    ['source', source],
+    ['source descendant', join(source, 'nested')],
+    ['replacement', replacement],
+    ['replacement alias', alias],
+  ]) {
+    const report = join(root, `${name.replaceAll(' ', '-')}-report.html`);
+    const rejected = spawnSync(binary, ['verify-restore', join(evidence, 'audit.json'), candidate, '--output', report], { encoding: 'utf8' });
+    expect(rejected.status, name).toBe(1);
+    expect(rejected.stderr, name).toContain('restored sample must be a separate directory');
+    expect(existsSync(report), name).toBe(false);
+  }
+
+  write(join(restored, 'nested', 'file.txt'), 'same');
+  const passed = spawnSync(binary, ['verify-restore', join(evidence, 'audit.json'), restored], { encoding: 'utf8' });
+  expect(passed.status, passed.stderr).toBe(0);
+  expect(readFileSync(join(evidence, 'restore-report.html'), 'utf8')).toContain('Restore sample passed');
+
+  const redactedEvidence = join(root, 'redacted-evidence');
+  expect(spawnSync(binary, ['check', source, replacement, '--redact', '--output', redactedEvidence]).status).toBe(0);
+  const redactedAudit = readFileSync(join(redactedEvidence, 'audit.json'), 'utf8');
+  expect(redactedAudit).not.toContain(source);
+  expect(redactedAudit).not.toContain(replacement);
+  expect(JSON.parse(redactedAudit).restore_boundary_fingerprints).toHaveLength(2);
+  const redactedRejected = spawnSync(binary, ['verify-restore', join(redactedEvidence, 'audit.json'), source], { encoding: 'utf8' });
+  expect(redactedRejected.status).toBe(1);
+  expect(redactedRejected.stderr).toContain('restored sample must be a separate directory');
+});
+
 test('@claim:symlink-policy links are recorded as links and never followed', () => {
   test.skip(process.platform === 'win32', 'symlink creation needs privileges on Windows');
   const root = temp();

@@ -68,7 +68,10 @@ storage-exit-check verify-restore \
 
 The command writes `restore-report.html` beside the audit. Keep both HTML
 reports with your cancellation records. Restore verification refuses an audit
-whose content check failed.
+whose content check failed. It also refuses either audited input tree, a
+directory inside one, and symbolic-link aliases, before it writes a restore
+report. Redacted audits keep opaque root fingerprints only for this boundary
+check; they do not reveal directory paths.
 
 ### Redact filenames
 
