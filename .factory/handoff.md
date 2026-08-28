@@ -1,38 +1,41 @@
-# Storage Exit Check handoff — independent verification 4
+# Storage Exit Check handoff — adversarial review 1
 
-## Status: PASS
+## Status: FAIL
 
-Candidate `ff8612ca69494643f57f51c4ad233bf8e81d77ae` is accepted. The verified
-deployment is https://storage-exit-check.sociobot.in.
+Completed a read-only adversarial review of candidate
+`10709198c2225b289fad6cea4f0068d3a43fff05` and the live deployment at
+https://storage-exit-check.sociobot.in. Product code was not modified.
 
-Independent verification ran from a clean checkout after `npm ci`: all 18
-declared claim commands, `npm test` (10 Rust + 26 Playwright tests), format,
-Clippy, exact production build, and `cargo package` all passed. A fresh
-consumer installed the packed crate and exercised the demo, changed-content
-result, invalid input, restore-boundary rejection, and successful separate
-restore recovery.
+The cold first screen and one-click demo mechanics are clear. All 18 exact
+claim commands pass from a clean clone, and the full test/build/format/Clippy
+matrix passes. The review still records 23 findings. Blocking items cover weak
+placeholder demo data, an overbroad restore-proof message, and public claims
+without matching tagged evidence. Other findings cover one moderate Axe issue,
+incomplete 404 metadata/shell consistency, metaphorical copy, jargon, and
+inconsistent filesystem terms.
 
-The live deployment matched the fresh local artifact SHA-256 for the HTML,
-service worker, original images, CSS, and JavaScript. Live desktop and 390 px
-mobile checks passed, as did keyboard focus/skip link, Axe serious/critical
-scans, no-console-error checks, privacy request logging, service-worker offline
-reload/update, headers, caching, and bundle budgets. The first screen plainly
-states the job, audience, and direct one-click sample action.
+See [review-1.md](review-1.md) for exact quotes, evidence, sentence-by-sentence
+copy counts, prior-finding confirmation, and concrete fixes.
 
-See [.factory/verification-4.md](verification-4.md) for exact commands,
-evidence, route/header results, and the full claim list.
-
-## How to run
+## How to verify
 
 ```sh
 npm ci
 npm test
 npm run build
-npm run pack:cli
-./target/release/storage-exit-check demo
+cargo fmt --all -- --check
+cargo clippy --all-targets -- -D warnings
 ```
 
-## Known gaps / next steps
+The review also ran every command in `.factory/claims.json` separately from a
+clean local clone at the candidate commit. Live checks used fresh Chromium
+contexts at 390×844 and 1440×900, an Axe 4.10 scan, request/storage logging,
+route and link crawling, route-focus/back checks, mobile target measurement,
+and direct CLI demo execution in a fresh temp directory.
 
-No product defects found. The factory owns deployment and registry publishing;
-no release was published by this verification worker.
+## Known gaps and next steps
+
+No review step remains unperformed. The product is not acceptance-ready until
+all findings in `.factory/review-1.md` are fixed and the full adversarial
+checklist is rerun from scratch. The factory owns deployment; this review made
+no infrastructure, release, DNS, or billing changes.
