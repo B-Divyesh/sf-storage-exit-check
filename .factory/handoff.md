@@ -1,6 +1,6 @@
 # Storage Exit Check handoff — QA repair
 
-## Status: repaired and ready to deploy
+## Status: repaired and deployed
 
 This repair starts from independent-verifier candidate
 `9b1fb7c26abeb42f6231fe411795dd587fd8d716` and addresses every finding in
@@ -68,10 +68,14 @@ Accessibility 100, FCP 1.1 s, LCP 1.7 s, CLS 0, TBT 60 ms. The built gzip JS is
 ## Deploy
 
 Artifact class and deployment remain unchanged: static site from `dist/site/`
-with the release Rust CLI. The checked-in `staticwebapp.config.json` is the
-deployment configuration; pushing `main` is the factory deployment handoff.
-After the push, recheck `https://storage-exit-check.sociobot.in/missing-page`
-returns HTTP 404 and a hashed `/assets/*` response has the immutable header.
+with the release Rust CLI. `/opt/fleet/lib/deploy-static.sh storage-exit-check
+dist/site` uploaded the build to the existing production Static Web App on
+2026-08-28. Live identity checks passed: production `index.html` and
+`assets/index-DumR1GJb.js` SHA-256 values match `dist/site`; `/missing-page`
+returns HTTP 404 and the styled page; built JavaScript and the versioned hero
+image return `public, max-age=31536000, immutable`; `sw.js` returns
+`public, max-age=0, must-revalidate`. A final live `verify-url.sh` run passed
+with no console errors and a 571 ms observed load.
 
 ## Known limits
 
