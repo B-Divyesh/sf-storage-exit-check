@@ -1,3 +1,34 @@
+FINAL CLEAN-CLONE CLAIM VERIFICATION — 2026-08-28
+Clone: /tmp/storage-exit-polish-final-IF3CTg/repo
+Commit: 76947033d286e52e88869d99bc73fa4e2223bf50
+Result: all 23 commands from .factory/claims.json passed independently (exit 0).
+
+- demo-complete: npm test -- --grep @claim:demo-complete — PASS
+- browser-demo-provenance: npm test -- --grep @claim:browser-demo-provenance — PASS
+- no-upload: npm test -- --grep @claim:no-upload — PASS
+- offline-cli: npm test -- --grep @claim:offline-cli — PASS
+- mit-free: npm test -- --grep @claim:mit-free — PASS
+- demo-isolated: npm test -- --grep @claim:demo-isolated — PASS
+- cli-demo-isolated: npm test -- --grep @claim:cli-demo-isolated — PASS
+- default-demo-temp: npm test -- --grep @claim:default-demo-temp — PASS
+- read-only: npm test -- --grep @claim:read-only — PASS
+- hash-differences: npm test -- --grep @claim:hash-differences — PASS
+- redacted-report: npm test -- --grep @claim:redacted-report — PASS
+- redacted-restore: npm test -- --grep @claim:redacted-restore — PASS
+- duplicate-file-restore: npm test -- --grep @claim:duplicate-file-restore — PASS
+- repeatable-sample: npm test -- --grep @claim:repeatable-sample — PASS
+- printable-report: npm test -- --grep @claim:printable-report — PASS
+- path-identity: npm test -- --grep @claim:path-identity — PASS
+- incomplete-audit: npm test -- --grep @claim:incomplete-audit — PASS
+- separate-restore: npm test -- --grep @claim:separate-restore — PASS
+- symlink-policy: npm test -- --grep @claim:symlink-policy — PASS
+- timestamp-policy: npm test -- --grep @claim:timestamp-policy — PASS
+- content-outcomes: npm test -- --grep @claim:content-outcomes — PASS
+- exit-semantics: npm test -- --grep @claim:exit-semantics — PASS
+- json-output: npm test -- --grep @claim:json-output — PASS
+
+The earlier full command output follows.
+
 ===== demo-complete =====
 
 > storage-exit-check-site@0.1.0 test

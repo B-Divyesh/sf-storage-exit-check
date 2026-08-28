@@ -8,3 +8,7 @@ cd4801a74e74149e6dccb4e0a0f437f4d0025561808e68c163d48bce0e806888  dist/site/asse
 cd4801a74e74149e6dccb4e0a0f437f4d0025561808e68c163d48bce0e806888  .factory/evidence/deployed/index-yKP1ZkfC.js
 b3f62564cbfd18fb870b709cd7964d2e5c9329c98e6afe986024e79f54a1b7a8  dist/site/assets/index-BDXcnISK.css
 b3f62564cbfd18fb870b709cd7964d2e5c9329c98e6afe986024e79f54a1b7a8  .factory/evidence/deployed/index-BDXcnISK.css
+a172a18f82633820c0af680948499d62db686c8f7c2f28b7bea2786714456801  dist/site/sample-evidence/audit.json
+a172a18f82633820c0af680948499d62db686c8f7c2f28b7bea2786714456801  live:/sample-evidence/audit.json
+6eece0880819878050048c8c15ac37cba3f22a4e4d0722f9c6cfe7f00838b2e5  dist/site/sample-evidence/storage-exit-check-sample-evidence.zip
+6eece0880819878050048c8c15ac37cba3f22a4e4d0722f9c6cfe7f00838b2e5  live:/sample-evidence/storage-exit-check-sample-evidence.zip

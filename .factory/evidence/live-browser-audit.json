@@ -5,9 +5,14 @@
       "title": "Storage Exit Check — check a storage move",
       "h1": 1,
       "main": 1,
+      "overflow": false,
+      "description": "Compare source and replacement folders, test selected restores, and print evidence before leaving cloud storage.",
+      "canonical": "https://storage-exit-check.sociobot.in/",
+      "privacy": true,
+      "terms": true,
       "axe": [],
       "errors": [],
-      "overflow": false,
+      "expectedErrors": [],
       "minTarget": 44
     },
     "/?demo=1": {
@@ -15,9 +20,14 @@
       "title": "Demo — Storage Exit Check",
       "h1": 1,
       "main": 1,
+      "overflow": false,
+      "description": "Inspect a CLI-generated sample audit, restore plan, and printable reports.",
+      "canonical": "https://storage-exit-check.sociobot.in/demo",
+      "privacy": true,
+      "terms": true,
       "axe": [],
       "errors": [],
-      "overflow": false,
+      "expectedErrors": [],
       "minTarget": 44
     },
     "/demo": {
@@ -25,9 +35,14 @@
       "title": "Demo — Storage Exit Check",
       "h1": 1,
       "main": 1,
+      "overflow": false,
+      "description": "Inspect a CLI-generated sample audit, restore plan, and printable reports.",
+      "canonical": "https://storage-exit-check.sociobot.in/demo",
+      "privacy": true,
+      "terms": true,
       "axe": [],
       "errors": [],
-      "overflow": false,
+      "expectedErrors": [],
       "minTarget": 44
     },
     "/install": {
@@ -35,9 +50,14 @@
       "title": "Install — Storage Exit Check",
       "h1": 1,
       "main": 1,
+      "overflow": false,
+      "description": "Install Storage Exit Check and compare a source folder with a replacement folder.",
+      "canonical": "https://storage-exit-check.sociobot.in/install",
+      "privacy": true,
+      "terms": true,
       "axe": [],
       "errors": [],
-      "overflow": false,
+      "expectedErrors": [],
       "minTarget": 44
     },
     "/privacy": {
@@ -45,9 +65,14 @@
       "title": "Privacy — Storage Exit Check",
       "h1": 1,
       "main": 1,
+      "overflow": false,
+      "description": "How Storage Exit Check handles files and site visits.",
+      "canonical": "https://storage-exit-check.sociobot.in/privacy",
+      "privacy": true,
+      "terms": true,
       "axe": [],
       "errors": [],
-      "overflow": false,
+      "expectedErrors": [],
       "minTarget": 44
     },
     "/terms": {
@@ -55,26 +80,42 @@
       "title": "Terms — Storage Exit Check",
       "h1": 1,
       "main": 1,
+      "overflow": false,
+      "description": "Terms for the free Storage Exit Check utility.",
+      "canonical": "https://storage-exit-check.sociobot.in/terms",
+      "privacy": true,
+      "terms": true,
       "axe": [],
       "errors": [],
-      "overflow": false,
+      "expectedErrors": [],
       "minTarget": 44
     },
-    "/no-such-polish-page": {
+    "/no-such-polish-page-final": {
       "status": 404,
       "title": "Page not found — Storage Exit Check",
       "h1": 1,
       "main": 1,
+      "overflow": false,
+      "description": "The requested Storage Exit Check page was not found.",
+      "canonical": "https://storage-exit-check.sociobot.in/404",
+      "privacy": true,
+      "terms": true,
       "axe": [],
       "errors": [],
       "expectedErrors": [
         "Failed to load resource: the server responded with a status of 404 ()"
       ],
-      "overflow": false,
       "minTarget": 44
     }
   },
-  "expected404Console": "Chromium reports the deliberate main-document HTTP 404 as a resource error.",
+  "firstScreen": {
+    "h1": "Inspect a complete sample check",
+    "banner": "Demo — sample data, nothing is savedReset demoStart for real",
+    "reset": true,
+    "startReal": true,
+    "report": true,
+    "download": true
+  },
   "outsideRequests": [],
   "cookies": [],
   "storage": {
@@ -82,13 +123,5 @@
     "session": [],
     "databases": []
   },
-  "offline": true,
-  "links": {
-    "/sample-evidence/report.html": 200,
-    "/sample-evidence/audit.json": 200,
-    "/sample-evidence/storage-exit-check-sample-evidence.zip": 200,
-    "/404.css": 200,
-    "/apple-touch-icon.png": 200,
-    "/og-image-b1a471d6.webp": 200
-  }
+  "offline": true
 }

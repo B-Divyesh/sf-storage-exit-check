@@ -1,8 +1,9 @@
 # Polish round 1 — finding closure
 
 **Base review:** `346002713869cc62a47bbda59de174dae0aaaccf`  
-**Repaired candidate:** `e043292a6db441c6356d39411c1e4b616e2c8bb7` plus this final evidence update  
-**Live URL:** https://storage-exit-check.sociobot.in  
+**Repaired candidate:** `76947033d286e52e88869d99bc73fa4e2223bf50` plus this final evidence update
+**Live URL:** https://storage-exit-check.sociobot.in
+**Final deployment:** `9166c10a-7969-4cee-9c3f-8818687cb23c`
 **Result:** all 23 findings closed; no known unresolved finding.
 
 The live home and demo screenshots are
@@ -19,7 +20,7 @@ Desktop captures sit beside them. The full independent claim-command log is
 | F-1-3 | Removed the unsupported Rust 1.75 minimum from README and `/install`; no exact compiler minimum remains. | `@regression:routing-metadata`; repository copy search | Live `/install` contains no version promise. |
 | F-1-4 | Added `cli-demo-isolated`; an LD_PRELOAD trace checks file opens and writes against a synthetic user-data folder. | `@claim:cli-demo-isolated` | Deployed demo banner and transcript use the tested sandbox wording. |
 | F-1-5 | Added the default no-`--output` contract and verifies the printed canonical path is beneath the OS temp folder. | `@claim:default-demo-temp` | Live `/install` documents the tested default. |
-| F-1-6 | `scripts/generate-demo.mjs` runs the release binary and generates the transcript, audit, reports, restore plan, and ZIP. The browser comparison checks counts, manifest, paths, and hashes against a fresh release run. | `@claim:browser-demo-provenance` | Live audit SHA-256 matches `dist/site`; live report and ZIP returned 200. |
+| F-1-6 | `scripts/generate-demo.mjs` runs the release binary and generates the transcript, audit, reports, restore plan, and ZIP. The browser comparison checks counts, manifest, paths, and hashes against a fresh release run. Fixed timestamps make the ZIP reproducible. | `@claim:browser-demo-provenance`; two consecutive generations produced SHA-256 `6eece088…` | Live audit and ZIP SHA-256 values match `dist/site`; live report and ZIP returned 200. |
 | F-1-7 | Removed the future release-binary promise. Source installation remains the only advertised install path. | repository copy search; `npm run pack:cli` | Live `/install` contains no future distribution promise. |
 | F-1-8 | Added redacted restore coverage with a correct renamed file and a wrong same-size file. | `@claim:redacted-restore` | README publishes only the tested size-and-SHA-256 behavior. |
 | F-1-9 | Added a two-path identical-content fixture; one restored copy fails one sample and two copies pass both. | `@claim:duplicate-file-restore` | README states identical files at two paths count twice. |
@@ -42,7 +43,7 @@ Desktop captures sit beside them. The full independent claim-command log is
 
 - Full local suite: `npm test` — 10 Rust tests and 32 Playwright tests passed.
 - Clean clone: all 23 exact `.factory/claims.json` commands passed at
-  `e043292a6db441c6356d39411c1e4b616e2c8bb7`.
+  `76947033d286e52e88869d99bc73fa4e2223bf50`.
 - Packaging: `cargo package` produced a 372.6 KiB crate; an offline install into
   a fresh consumer root completed the demo and wrote all four evidence files.
 - Static build: initial JS 12.61 KiB (4.87 KiB gzip); CSS 10.38 KiB (3.34 KiB

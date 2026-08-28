@@ -11,10 +11,11 @@ Implementation commits:
 
 - `4e17d91` — product, claims, demo, copy, routing, 404, and fixture repairs
 - `8d1e7f1` — release-CLI browser evidence generator
+- `7694703` — deterministic downloadable evidence archive
 - final evidence tests also inspect JPEG signatures, report counts and hashes,
   and the exact four-file ZIP inventory
 
-Deployment ID: `fe2ebfcd-a04b-403c-8503-18e4f1b472dd`.
+Final deployment ID: `9166c10a-7969-4cee-9c3f-8818687cb23c`.
 
 ## What changed
 
@@ -27,7 +28,8 @@ Deployment ID: `fe2ebfcd-a04b-403c-8503-18e4f1b472dd`.
   replacement folder adds a harmless NAS note and one timestamp-only change.
 - Every site build runs the release CLI to generate the visible transcript,
   audit, printable reports, restore plan, and downloadable ZIP. The demo exposes
-  “View sample report” and “Download sample evidence.”
+  “View sample report” and “Download sample evidence.” Fixed archive timestamps
+  make consecutive evidence ZIPs byte-identical.
 - `.factory/claims.json` now has 23 claims with exactly one tagged test each.
   New coverage traces demo filesystem access, checks the default temp folder,
   compares browser evidence with a fresh release run, verifies redacted restore
@@ -57,7 +59,9 @@ Observed results on 28 August 2026:
 
 - `npm test`: 10 Rust unit tests and 32 Playwright tests passed.
 - Every one of the 23 exact claim commands passed independently from clean clone
-  `/tmp/storage-exit-polish-final-eRlsAl/repo` at `e043292`; full output is in
+  `/tmp/storage-exit-polish-final-IF3CTg/repo` at
+  `76947033d286e52e88869d99bc73fa4e2223bf50`; the final result and earlier full
+  output are in
   `.factory/evidence/clean-claim-tests.log`.
 - `npm run build`: passed and produced `dist/site/`. Initial JavaScript is
   12.61 KiB (4.87 KiB gzip); CSS is 10.38 KiB (3.34 KiB gzip).
@@ -79,7 +83,8 @@ Observed results on 28 August 2026:
 - An unknown URL returned HTTP 404 with the full metadata and shared shell.
   Report, audit, ZIP, favicon/touch icon, and OG image URLs returned 200.
 - Local and live SHA-256 values match for `index.html`, `404.html`, `sw.js`, the
-  generated JavaScript, generated CSS, and sample audit.
+  generated JavaScript, generated CSS, sample audit, and evidence ZIP. The ZIP
+  is `6eece0880819878050048c8c15ac37cba3f22a4e4d0722f9c6cfe7f00838b2e5`.
 
 Screenshots and machine-readable reports are under `.factory/evidence/`.
 
