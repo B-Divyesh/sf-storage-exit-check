@@ -1,6 +1,6 @@
 # Storage Exit Check handoff — restore-boundary repair
 
-## Status: repaired and ready to deploy
+## Status: repaired and deployed
 
 This repair addresses the release-blocking P1 in independent verification 3
 for candidate `71aa6f5557b20259c510f864e697ef8e8c86eabc`.
@@ -83,9 +83,15 @@ npm run pack:cli
 
 Artifact class remains `cli` with the existing static documentation site.
 The deployable site remains `dist/site/`, configured by
-`site/public/staticwebapp.config.json`. Deployment is triggered by pushing
-`main` to the factory-connected repository; post-push live identity and route
-checks are recorded below once the host serves the repair commit.
+`site/public/staticwebapp.config.json`. The repair was pushed to the
+factory-connected `main` branch (`8e96bfa9849802a44f910d8728fd51111dba0ad3`)
+and is live at `https://storage-exit-check.sociobot.in`.
+
+Post-push live checks: `/`, `/demo`, `/install`, `/privacy`, and `/terms`
+returned 200; an unknown route returned the styled 404 with HTTP 404. SHA-256
+matched local `dist/site/` for `index.html`, `404.html`, `sw.js`, both WebP
+assets, and hashed CSS/JS. The live hashed JavaScript has immutable one-year
+caching; CSP, HSTS, `nosniff`, and referrer-policy headers are present.
 
 ## Known gaps / next steps
 
