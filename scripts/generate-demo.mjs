@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -24,10 +24,14 @@ const restore = JSON.parse(execFileSync(binary, ['--json', 'verify-restore', joi
   env: environment,
 }));
 
-for (const name of ['audit.json', 'report.html', 'restore-report.html', 'restore-sample.txt']) {
+const evidenceFiles = ['audit.json', 'report.html', 'restore-report.html', 'restore-sample.txt'];
+const fixedTime = new Date(1_787_875_200_000);
+for (const name of evidenceFiles) {
   cpSync(join(evidence, name), join(publicRoot, name));
+  utimesSync(join(evidence, name), fixedTime, fixedTime);
+  utimesSync(join(publicRoot, name), fixedTime, fixedTime);
 }
-execFileSync('zip', ['-q', '-X', '-j', join(publicRoot, 'storage-exit-check-sample-evidence.zip'), ...['audit.json', 'report.html', 'restore-report.html', 'restore-sample.txt'].map((name) => join(evidence, name))]);
+execFileSync('zip', ['-q', '-X', '-j', join(publicRoot, 'storage-exit-check-sample-evidence.zip'), ...evidenceFiles.map((name) => join(evidence, name))]);
 
 const normalizedTranscript = transcript.replaceAll(demoRoot, '/tmp/storage-exit-check-demo').trim();
 writeFileSync(generatedFile, `${JSON.stringify({
